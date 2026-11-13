@@ -140,3 +140,100 @@ body {
   outline: 2px solid var(--lavande);
   outline-offset: 3px;
 }
+
+/* =========================================================
+   7. Vinyles cliquables : illumination au survol
+   ========================================================= */
+.vinyle-cliquable {
+  cursor: pointer; /* main classique, provisoire (la main néon arrive en US3) */
+  transform-box: fill-box; /* le mouvement se calcule par rapport au vinyle lui-même */
+  transition:
+    filter 250ms ease,
+    transform 250ms ease;
+}
+
+.vinyle-cliquable:hover {
+  /* --couleur-vinyle est posée par main.js : chaque vinyle brille de sa couleur */
+  filter: drop-shadow(0 0 6px var(--couleur-vinyle)) drop-shadow(0 0 14px var(--couleur-vinyle));
+  transform: translateY(-4px); /* léger soulèvement */
+}
+
+/* =========================================================
+   8. Info-bulle (au-dessus du vinyle survolé)
+   ========================================================= */
+.info-bulle {
+  --couleur: var(--couleur-vinyle, var(--magenta)); /* magenta par défaut */
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  max-width: 30cqw;
+  padding: 0.8cqw 1.1cqw;
+  background: var(--surface);
+  border: 0.1cqw solid var(--couleur);
+  border-radius: 0.7cqw;
+  box-shadow: 0 0 1cqw color-mix(in srgb, var(--couleur) 35%, transparent);
+  pointer-events: none; /* la bulle ne doit pas « voler » le survol du vinyle */
+  opacity: 0;
+  translate: 0 0.4cqw; /* part un peu plus bas, puis glisse vers sa place */
+  transition:
+    opacity 200ms ease,
+    translate 200ms ease;
+}
+
+.info-bulle--visible {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.info-bulle__titre {
+  margin: 0;
+  font-family: 'Tilt Neon', sans-serif;
+  font-size: 1.25cqw;
+  line-height: 1.25;
+}
+
+.info-bulle__action {
+  margin: 0.3cqw 0 0;
+  font-size: 0.9cqw;
+  color: rgb(245 243 255 / 0.75);
+}
+
+/* Petite flèche : un carré tourné à 45°, dont on ne voit que la pointe.
+   --fleche-x (posée par main.js) l'aligne sur le centre du vinyle. */
+.info-bulle::after {
+  content: '';
+  position: absolute;
+  left: var(--fleche-x, 50%);
+  top: 100%;
+  width: 0.8cqw;
+  height: 0.8cqw;
+  background: var(--surface);
+  border-right: 0.1cqw solid var(--couleur);
+  border-bottom: 0.1cqw solid var(--couleur);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Variante quand la bulle passe sous le vinyle : flèche en haut, pointée vers le haut */
+.info-bulle--dessous::after {
+  top: 0;
+  transform: translate(-50%, -50%) rotate(225deg);
+}
+
+/* =========================================================
+   9. Réglage « réduire les animations » : aucun mouvement
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .vinyle-cliquable,
+  .info-bulle {
+    transition: none;
+  }
+
+  .vinyle-cliquable:hover {
+    transform: none; /* le halo reste, mais plus de soulèvement */
+  }
+
+  .info-bulle {
+    translate: 0 0; /* la bulle apparaît directement à sa place */
+  }
+}
