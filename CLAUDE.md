@@ -5,7 +5,7 @@ Site CV / portfolio de Louise Bury, Product Manager / Product Owner (près de 8 
 
 ## Comment travailler avec moi
 - Réponds en français, sans jargon non expliqué.
-- Une seule étape à la fois, puis attends ma validation.
+- Pour chaque user story : présente un plan court et attends ma validation. Ensuite, enchaîne les étapes sans me redemander, lance npm run build, et arrête-toi avant le commit pour que je teste dans le navigateur.
 - Explique pourquoi on fait chaque étape, et le code ligne par ligne quand c'est utile.
 - Donne des commandes exactes pour PowerShell (Windows, terminal VS Code, dossier `site-cv`).
 - Avant toute décision technique importante : propose 2 ou 3 options avec avantages et inconvénients, recommande-en une adaptée à une PM débutante en code, et attends mon choix.
