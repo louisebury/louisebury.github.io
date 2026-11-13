@@ -254,6 +254,131 @@ body {
 }
 
 /* =========================================================
+   9 bis. Ambiance : soleil de la fenêtre, bandes qui « coulent »
+   Les 3 bandes violettes du soleil glissent vers l'horizon en
+   s'épaississant, puis passent sous la mer (dessinée par-dessus
+   dans le SVG, donc elle les cache naturellement).
+   Trajet commun : centre de la bande de y = 295 à y = 322,
+   épaisseur de 1,5 px à 6 px.
+   ========================================================= */
+#soleil rect {
+  /* Chaque bande grossit autour de son propre centre */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: soleil-vague 4s linear infinite;
+}
+
+/* Les bandes ne sont pas dessinées au même endroit : chacune reçoit
+   l'écart (en px) entre sa position d'origine et le haut / le bas du
+   trajet, et l'échelle qui donne 1,5 px puis 6 px d'épaisseur.
+   Le délai négatif les répartit tout de suite à intervalles réguliers. */
+#soleil rect:nth-of-type(1) { /* y=301, hauteur 3, centre 302,5 */
+  --depart: -7.5px;
+  --arrivee: 19.5px;
+  --epaisseur-debut: 0.5;
+  --epaisseur-fin: 2;
+  animation-delay: 0s;
+}
+
+#soleil rect:nth-of-type(2) { /* y=308, hauteur 4, centre 310 */
+  --depart: -15px;
+  --arrivee: 12px;
+  --epaisseur-debut: 0.375;
+  --epaisseur-fin: 1.5;
+  animation-delay: -1.333s;
+}
+
+#soleil rect:nth-of-type(3) { /* y=317, hauteur 5, centre 319,5 */
+  --depart: -24.5px;
+  --arrivee: 2.5px;
+  --epaisseur-debut: 0.3;
+  --epaisseur-fin: 1.2;
+  animation-delay: -2.667s;
+}
+
+@keyframes soleil-vague {
+  0% {
+    translate: 0 var(--depart);
+    scale: 1 var(--epaisseur-debut);
+    opacity: 0; /* la bande naît en douceur, sans « pop » */
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    translate: 0 var(--arrivee);
+    scale: 1 var(--epaisseur-fin);
+    opacity: 1; /* elle est alors cachée sous la mer */
+  }
+}
+
+/* =========================================================
+   9 ter. Ambiance : l'eau sous le soleil
+   Dans #fenetre-sunset, les 4 premiers <path> sont les lignes roses
+   de la mer : y = 318 (horizon), 325, 336, 352. Le 5e est la croisée
+   de la fenêtre (non animée).
+   - L'horizon reste fixe.
+   - Les 3 autres lignes partent de l'horizon et coulent vers le bas
+     de la fenêtre (y = 358) en accélérant et en s'épaississant :
+     c'est l'effet de perspective.
+   - Une 2e animation, plus lente, les fait pencher très légèrement :
+     une houle douce.
+   ========================================================= */
+#fenetre-sunset > path:nth-of-type(2),
+#fenetre-sunset > path:nth-of-type(3),
+#fenetre-sunset > path:nth-of-type(4) {
+  transform-box: fill-box;
+  transform-origin: center; /* chaque ligne s'épaissit et penche autour de son milieu */
+  animation:
+    mer-flot 5s cubic-bezier(0.5, 0, 1, 1) infinite,  /* accélère vers le bas */
+    mer-houle 3s ease-in-out infinite alternate;     /* va-et-vient doux */
+}
+
+/* Écarts entre la position dessinée et le haut (318) / le bas (358)
+   du trajet, + délais négatifs pour répartir les lignes dès le départ */
+#fenetre-sunset > path:nth-of-type(2) { /* y = 325 */
+  --depart: -7px;
+  --arrivee: 33px;
+  animation-delay: 0s, 0s;
+}
+
+#fenetre-sunset > path:nth-of-type(3) { /* y = 336 */
+  --depart: -18px;
+  --arrivee: 22px;
+  animation-delay: -1.667s, -1s;
+}
+
+#fenetre-sunset > path:nth-of-type(4) { /* y = 352 */
+  --depart: -34px;
+  --arrivee: 6px;
+  animation-delay: -3.333s, -2s;
+}
+
+@keyframes mer-flot {
+  0% {
+    translate: 0 var(--depart);
+    scale: 1 0.5; /* fine près de l'horizon */
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    translate: 0 var(--arrivee);
+    scale: 1 2.5; /* plus épaisse près de nous */
+    opacity: 0;   /* s'efface au bord de la fenêtre */
+  }
+}
+
+@keyframes mer-houle {
+  from { rotate: -0.4deg; }
+  to   { rotate: 0.4deg; }
+}
+
+/* =========================================================
    10. Réglage « réduire les animations » : aucun mouvement
    ========================================================= */
 @media (prefers-reduced-motion: reduce) {
@@ -273,5 +398,10 @@ body {
 
   .info-bulle {
     translate: 0 0; /* la bulle apparaît directement à sa place */
+  }
+
+  #soleil rect,
+  #fenetre-sunset > path {
+    animation: none; /* bandes du soleil et lignes de la mer restent comme dessinées */
   }
 }
