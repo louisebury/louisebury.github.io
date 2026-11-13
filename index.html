@@ -1,13 +1,40 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>site-cv</title>
+    <title>Louise Bury · Product Manager</title>
+    <meta name="description" content="Louise Bury, Product Manager / Product Owner. Découvrez mes projets." />
+
+    <!-- Polices Google Fonts : Monoton (nom), Tilt Neon (titres), Nunito (texte courant) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Monoton&family=Nunito:wght@400;600;700&family=Tilt+Neon&display=swap"
+    />
   </head>
   <body>
-    <div id="app"></div>
+    <main class="scene">
+      <!-- Le décor SVG est inséré ici par src/main.js -->
+      <div class="scene__decor" id="decor"></div>
+
+      <header class="identite">
+        <h1 class="identite__nom">Louise Bury</h1>
+        <p class="identite__poste">Product Manager / Product Owner</p>
+      </header>
+
+      <p class="consigne">Survolez un vinyle lumineux pour découvrir un projet</p>
+
+      <button class="bouton-son" type="button">
+        <svg class="bouton-son__icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" />
+          <path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+        </svg>
+        Son coupé
+      </button>
+    </main>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
