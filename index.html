@@ -24,6 +24,10 @@
         <p class="identite__poste">Product Manager / Product Owner</p>
       </header>
 
+      <!-- Main néon qui remplace le curseur au-dessus de la bibliothèque (pilotée par src/main.js).
+           alt="" + aria-hidden : purement décorative, ignorée par les lecteurs d'écran. -->
+      <img class="main-curseur" src="./src/assets/main-pointe.svg" alt="" aria-hidden="true" hidden />
+
       <!-- Info-bulle affichée au survol d'un vinyle (remplie et placée par src/main.js) -->
       <div class="info-bulle" id="info-bulle" role="tooltip" hidden>
         <p class="info-bulle__titre"></p>

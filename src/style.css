@@ -145,7 +145,7 @@ body {
    7. Vinyles cliquables : illumination au survol
    ========================================================= */
 .vinyle-cliquable {
-  cursor: pointer; /* main classique, provisoire (la main néon arrive en US3) */
+  cursor: pointer; /* main classique, si la main néon n'est pas active (écran tactile) */
   transform-box: fill-box; /* le mouvement se calcule par rapport au vinyle lui-même */
   transition:
     filter 250ms ease,
@@ -221,12 +221,46 @@ body {
 }
 
 /* =========================================================
-   9. Réglage « réduire les animations » : aucun mouvement
+   9. Main-curseur (US3)
+   ========================================================= */
+.main-curseur {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5; /* sous l'info-bulle (z-index 10) : elle ne la cache jamais */
+  width: 5cqw; /* 5 % de la largeur de la scène : suit la taille de l'écran */
+  height: auto;
+  pointer-events: none; /* ne bloque ni les clics ni le survol des vinyles */
+  /* --x / --y = position de la souris (posées par main.js).
+     Le 2e décalage recule l'image pour que le bout de l'index (38 % / 9 %) soit pile sous la souris. */
+  transform: translate(var(--x, 0), var(--y, 0)) translate(-38%, -9%);
+  transform-origin: 38% 9%; /* la pression s'écrase vers le bout du doigt */
+  transition: scale 80ms ease;
+}
+
+/* Petite pression au moment du clic */
+.main-curseur--pression {
+  scale: 0.88;
+}
+
+/* Quand la main est affichée, on cache la flèche du navigateur (sur la scène et tout ce qu'elle contient) */
+.scene--main-visible,
+.scene--main-visible * {
+  cursor: none;
+}
+
+/* =========================================================
+   10. Réglage « réduire les animations » : aucun mouvement
    ========================================================= */
 @media (prefers-reduced-motion: reduce) {
   .vinyle-cliquable,
-  .info-bulle {
+  .info-bulle,
+  .main-curseur {
     transition: none;
+  }
+
+  .main-curseur--pression {
+    scale: none; /* la main suit toujours la souris, mais sans pression */
   }
 
   .vinyle-cliquable:hover {
