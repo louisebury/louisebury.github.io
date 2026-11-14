@@ -256,3 +256,128 @@ function basculer(depart, arrivee, instantane, ensuite) {
     arrivee.classList.remove('vue--effacee') // … et remonte à 1 en fondu
   }, DUREE_FONDU)
 }
+
+/* ---------------------------------------------------------
+   US4.3 : barre du haut et sommaire de la page projet
+   --------------------------------------------------------- */
+const sommaireLiens = document.querySelectorAll('.sommaire a')
+const sectionsProjet = [...document.querySelectorAll('.projet__section')]
+const piedProjet = document.querySelector('.projet__pied')
+const lienConnect = document.querySelector('.projets__lien[aria-current="page"]')
+const boutonProjets = document.querySelector('.projets__bouton')
+const listeProjets = document.querySelector('#liste-projets')
+
+// Défilement en douceur, sauf si le visiteur a demandé de réduire les animations
+function modeDefilement() {
+  return reduireAnimations.matches ? 'auto' : 'smooth'
+}
+
+// 1. Clic dans le sommaire : on défile jusqu'au titre de la section.
+//    preventDefault() empêche le navigateur de changer l'adresse (#connect-contexte…) :
+//    afficherVue() croirait alors qu'on quitte la page projet.
+sommaireLiens.forEach((lien) => {
+  lien.addEventListener('click', (evenement) => {
+    evenement.preventDefault()
+    const titre = document.querySelector(lien.getAttribute('href'))
+    if (!titre) return
+    titre.scrollIntoView({ behavior: modeDefilement(), block: 'start' })
+    // Le focus suit : au clavier, la touche Tab repart de cette section
+    titre.focus({ preventScroll: true })
+  })
+})
+
+// 2. « Connect » dans la barre : c'est la page affichée, on remonte simplement en haut
+if (lienConnect) {
+  lienConnect.addEventListener('click', (evenement) => {
+    evenement.preventDefault()
+    fermerMenuProjets()
+    window.scrollTo({ top: 0, behavior: modeDefilement() })
+    titreProjet.focus({ preventScroll: true })
+  })
+}
+
+// 3. Section active du sommaire, avec IntersectionObserver.
+//    La « zone de lecture » est une bande en haut de l'écran : de 150 px (sous les barres)
+//    jusqu'à 55 % de la hauteur. La section qui la traverse est celle qu'on lit.
+const sectionsVisibles = new Set()
+let finDePageAtteinte = false
+
+const observateurSections = new IntersectionObserver(
+  (entrees) => {
+    entrees.forEach((entree) => {
+      if (entree.isIntersecting) sectionsVisibles.add(entree.target)
+      else sectionsVisibles.delete(entree.target)
+    })
+    mettreAJourSommaire()
+  },
+  { rootMargin: '-150px 0px -55% 0px' }
+)
+sectionsProjet.forEach((section) => observateurSections.observe(section))
+
+// Quand le pied de page apparaît, on est tout en bas : « Résultats » s'allume,
+// même si la section est trop courte pour atteindre la zone de lecture.
+if (piedProjet) {
+  new IntersectionObserver(([entree]) => {
+    finDePageAtteinte = entree.isIntersecting
+    mettreAJourSommaire()
+  }).observe(piedProjet)
+}
+
+function mettreAJourSommaire() {
+  let active = finDePageAtteinte
+    ? sectionsProjet[sectionsProjet.length - 1]
+    : sectionsProjet.find((section) => sectionsVisibles.has(section)) // la 1re dans l'ordre de la page
+
+  if (!active) {
+    // Aucune section dans la zone : soit on est au-dessus de « Contexte » (sur l'en-tête),
+    // et « Contexte » s'allume, comme sur la maquette ; soit on est entre deux sections,
+    // et on garde celle qui était allumée.
+    const auDessus = sectionsProjet[0] && sectionsProjet[0].getBoundingClientRect().top > 150
+    if (!auDessus) return
+    active = sectionsProjet[0]
+  }
+
+  sommaireLiens.forEach((lien) => {
+    // Chaque section porte aria-labelledby = l'id de son titre, celui que vise le lien
+    const estActif = active && lien.getAttribute('href') === '#' + active.getAttribute('aria-labelledby')
+    if (estActif) lien.setAttribute('aria-current', 'true') // annoncé « actuel » par les lecteurs d'écran
+    else lien.removeAttribute('aria-current')
+  })
+}
+
+// 4. Menu « Projets » (écrans de moins de 1180 px)
+if (boutonProjets && listeProjets) {
+  boutonProjets.addEventListener('click', () => {
+    const ouvert = boutonProjets.getAttribute('aria-expanded') === 'true'
+    if (ouvert) fermerMenuProjets()
+    else ouvrirMenuProjets()
+  })
+
+  // Échap ferme le menu et rend le focus au bouton
+  document.addEventListener('keydown', (evenement) => {
+    if (evenement.key === 'Escape' && menuProjetsOuvert()) {
+      fermerMenuProjets()
+      boutonProjets.focus()
+    }
+  })
+
+  // Un clic ailleurs que dans le menu le ferme
+  document.addEventListener('click', (evenement) => {
+    if (menuProjetsOuvert() && !evenement.target.closest('.projets')) fermerMenuProjets()
+  })
+}
+
+function menuProjetsOuvert() {
+  return boutonProjets && boutonProjets.getAttribute('aria-expanded') === 'true'
+}
+
+function ouvrirMenuProjets() {
+  boutonProjets.setAttribute('aria-expanded', 'true') // annoncé « développé » par les lecteurs d'écran
+  listeProjets.classList.add('est-ouvert')
+}
+
+function fermerMenuProjets() {
+  if (!boutonProjets) return
+  boutonProjets.setAttribute('aria-expanded', 'false')
+  listeProjets.classList.remove('est-ouvert')
+}

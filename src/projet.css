@@ -16,7 +16,8 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 740px);
   max-width: 1440px;
   margin: 0 auto;
-  padding: 32px 60px 120px 40px;
+  /* 84 px en haut = la barre fixe (72 px) + 12 px d'air au-dessus du sommaire */
+  padding: 84px 60px 120px 40px;
   font-family: var(--police-texte);
 }
 
@@ -1049,7 +1050,7 @@
 @media (max-width: 767px) {
   .vue-projet {
     grid-template-columns: minmax(0, 1fr);
-    padding: 24px 16px 80px;
+    padding: 68px 16px 80px; /* barre fixe de 60 px + 8 px */
   }
 
   .vue-projet > * {
@@ -1192,5 +1193,322 @@
 
   .bouton-retour--pied {
     justify-content: center;
+  }
+}
+
+
+/* =========================================================
+   8. Barre du haut et sommaire (US4.3)
+   ========================================================= */
+
+/* Texte caché à l'écran mais lu par les lecteurs d'écran
+   (on ne peut pas utiliser display: none, qui le cacherait aussi aux lecteurs) */
+.visuellement-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Listes de la barre et du sommaire : sans puces ni retrait (elles sont hors de l'article) */
+.barre-haut ul,
+.sommaire ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* --- Barre du haut : fixée en haut de l'écran, sur toute la largeur --- */
+.barre-haut {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20; /* au-dessus du sommaire et du contenu */
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 72px;
+  padding: 0 48px;
+  background: rgb(11 11 18 / 0.92);
+  backdrop-filter: blur(8px); /* le contenu qui passe dessous est flouté */
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.barre-haut__nom {
+  flex: none;
+  margin: 0 auto 0 0; /* margin-right: auto pousse le reste vers la droite */
+  font-size: 26px;
+  line-height: 1;
+  white-space: nowrap;
+  -webkit-text-stroke-width: 0.3px;
+}
+
+.barre-haut .bouton-retour {
+  flex: none;
+  gap: 4px; /* espace entre la flèche et « Bibliothèque » (deux éléments séparés) */
+  padding: 6px 16px;
+  font-size: 13px;
+  background: transparent;
+  border-color: rgb(245 243 255 / 0.6);
+}
+
+/* Liste des 7 contenus, en ligne sur grand écran */
+.projets {
+  position: relative;
+}
+
+.projets__bouton {
+  display: none; /* seulement sur petit écran, voir plus bas */
+}
+
+.projets .projets__liste {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.projets__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--texte);
+  text-decoration: none;
+  border-radius: var(--rayon-pastille);
+}
+
+/* La pastille de couleur, devant le nom */
+.projets__lien::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--pastille);
+  border-radius: 50%;
+}
+
+/* Le projet affiché (aria-current="page") : en gras */
+.projets__lien[aria-current='page'] {
+  font-weight: 800;
+}
+
+/* Les contenus pas encore disponibles : atténués */
+.projets__lien--inactif {
+  color: rgb(245 243 255 / 0.55);
+}
+
+.projets__lien--inactif::before {
+  opacity: 0.5;
+}
+
+/* Bouton « Son coupé » de la barre : mêmes couleurs qu'à l'accueil, en tailles fixes */
+.bouton-son--barre {
+  position: static; /* à l'accueil il est placé en absolu dans la scène */
+  flex: none;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  background: transparent;
+  border-color: rgb(245 243 255 / 0.6);
+}
+
+.bouton-son--barre .bouton-son__icone {
+  width: 16px;
+  height: 16px;
+}
+
+/* Focus clavier visible sur tout ce qui est cliquable dans la barre et le sommaire */
+.projets__lien:focus-visible,
+.projets__bouton:focus-visible,
+.sommaire a:focus-visible {
+  outline: 2px solid var(--lavande);
+  outline-offset: 2px;
+}
+
+/* --- Sommaire : collé sous la barre du haut pendant le défilement --- */
+.sommaire {
+  position: sticky; /* reste à sa place dans la page, puis « colle » à 84 px du haut */
+  top: 84px;
+  z-index: 15;
+  margin: 0 -24px; /* un peu plus large que la colonne de contenu, comme sur la maquette */
+}
+
+.sommaire ul {
+  display: flex;
+  gap: 8px;
+  padding: 5px 22px;
+  background: rgb(23 23 31 / 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgb(245 243 255 / 0.12);
+  border-radius: 22px;
+}
+
+.sommaire a {
+  display: block;
+  padding: 6px 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(245 243 255 / 0.6);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--rayon-pastille);
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.sommaire a:hover {
+  color: var(--texte);
+}
+
+/* La section en cours de lecture (aria-current posé par main.js) s'allume */
+.sommaire a[aria-current='true'] {
+  font-weight: 800;
+  color: var(--texte);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 80%, transparent);
+}
+
+/* Quand on arrive sur un titre de section, il s'arrête sous les deux barres (72 + 12 + 44 + 12 px).
+   Même marge pour l'article : à l'ouverture directe de …/#connect, le navigateur
+   y saute, et le titre du projet restait caché sous le sommaire. */
+.titre-section,
+.projet {
+  scroll-margin-top: 140px;
+}
+
+/* Les titres reçoivent le focus par programme (clic du sommaire) : pas de cadre */
+.titre-section:focus {
+  outline: none;
+}
+
+/* --- Écrans moyens : les 7 contenus ne tiennent plus en ligne → menu « Projets » --- */
+@media (max-width: 1179px) {
+  .barre-haut {
+    gap: 16px;
+    padding: 0 24px;
+  }
+
+  .projets__bouton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-family: var(--police-texte);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texte);
+    background: transparent;
+    border: 1px solid rgb(245 243 255 / 0.6);
+    border-radius: var(--rayon-pastille);
+    cursor: pointer;
+  }
+
+  .projets__bouton[aria-expanded='true'] {
+    border-color: var(--lavande);
+  }
+
+  /* La liste devient un menu déroulant, caché tant qu'il n'est pas ouvert.
+     display: none : les éléments cachés ne sont pas atteignables avec Tab. */
+  .projets .projets__liste {
+    display: none;
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 210px;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid rgb(245 243 255 / 0.14);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
+  }
+
+  .projets .projets__liste.est-ouvert {
+    display: flex;
+  }
+
+  .projets__lien {
+    display: flex;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+/* --- Mobile --- */
+@media (max-width: 767px) {
+  .barre-haut {
+    gap: 10px;
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .barre-haut__nom {
+    font-size: 20px;
+  }
+
+  .barre-haut .bouton-retour,
+  .projets__bouton {
+    padding: 6px 12px;
+  }
+
+  /* « Son coupé » : l'icône seule, le texte reste lu par les lecteurs d'écran */
+  .bouton-son--barre {
+    padding: 7px;
+  }
+
+  /* « ← Bibliothèque » : la flèche seule, le mot reste lu par les lecteurs d'écran */
+  .barre-haut .bouton-retour__texte,
+  .bouton-son--barre .bouton-son__texte {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Sommaire : une bande pleine largeur qu'on fait défiler du doigt */
+  .sommaire {
+    top: 68px;
+    margin: 0 -16px;
+  }
+
+  .sommaire ul {
+    overflow-x: auto; /* défilement horizontal dans la bande seulement, pas dans la page */
+    scrollbar-width: none; /* pas de barre de défilement visible */
+    padding: 6px 16px;
+    border-radius: 0;
+    border-width: 1px 0;
+  }
+
+  .sommaire a {
+    padding: 6px 14px;
+    font-size: 14px;
+  }
+
+  .titre-section,
+  .projet {
+    scroll-margin-top: 124px; /* 60 + 8 + 44 + 12 px */
+  }
+}
+
+/* Réduire les animations : pas de transition dans le sommaire */
+@media (prefers-reduced-motion: reduce) {
+  .sommaire a {
+    transition: none;
   }
 }

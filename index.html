@@ -48,7 +48,81 @@
     <!-- US4.1 : vue projet. Un seul <main> visible à la fois : l'autre porte « hidden ».
          src/main.js affiche cette vue quand l'adresse se termine par #connect. -->
     <main class="vue-projet" hidden>
-      <button class="bouton-retour" type="button">← Bibliothèque</button>
+      <!-- US4.3 : barre du haut, fixée en haut de l'écran. Elle est dans la vue projet : elle se cache avec elle. -->
+      <header class="barre-haut">
+        <p class="barre-haut__nom titre-neon">Louise Bury</p>
+
+        <!-- Même bouton qu'en 4.1 : main.js retrouve tous les .bouton-retour -->
+        <!-- Sur mobile, seul « ← » est affiché : « Bibliothèque » est caché à l'écran mais reste lu.
+             La flèche est décorative (aria-hidden) : le nom du bouton est « Bibliothèque ». -->
+        <button class="bouton-retour" type="button">
+          <span aria-hidden="true">←</span><span class="bouton-retour__texte"> Bibliothèque</span>
+        </button>
+
+        <!-- Les 7 contenus. Sur petit écran, ils sont repliés derrière le bouton « Projets » (main.js). -->
+        <nav class="projets" aria-label="Projets">
+          <button class="projets__bouton" type="button" aria-expanded="false" aria-controls="liste-projets">
+            Projets <span aria-hidden="true">▾</span>
+          </button>
+          <!-- --pastille = la couleur du vinyle. Seul Connect est un lien ; les autres sont du simple texte
+               (ni clic ni arrêt sur Tab), avec « (bientôt) » lu seulement par les lecteurs d'écran. -->
+          <ul class="projets__liste" id="liste-projets">
+            <li>
+              <a class="projets__lien" href="#connect" aria-current="page" style="--pastille: var(--magenta)">Connect</a>
+            </li>
+            <li>
+              <span class="projets__lien projets__lien--inactif" style="--pastille: var(--soleil)">
+                Indice de prix<span class="visuellement-cache"> (bientôt)</span>
+              </span>
+            </li>
+            <li>
+              <span class="projets__lien projets__lien--inactif" style="--pastille: var(--bleu)">
+                Benchmarks<span class="visuellement-cache"> (bientôt)</span>
+              </span>
+            </li>
+            <li>
+              <span class="projets__lien projets__lien--inactif" style="--pastille: var(--violet-neon)">
+                Checkout Picard<span class="visuellement-cache"> (bientôt)</span>
+              </span>
+            </li>
+            <li>
+              <span class="projets__lien projets__lien--inactif" style="--pastille: var(--orange)">
+                Expériences<span class="visuellement-cache"> (bientôt)</span>
+              </span>
+            </li>
+            <li>
+              <span class="projets__lien projets__lien--inactif" style="--pastille: var(--violet)">
+                Formations<span class="visuellement-cache"> (bientôt)</span>
+              </span>
+            </li>
+            <li>
+              <span class="projets__lien projets__lien--inactif" style="--pastille: var(--texte)">
+                Contact<span class="visuellement-cache"> (bientôt)</span>
+              </span>
+            </li>
+          </ul>
+        </nav>
+
+        <button class="bouton-son bouton-son--barre" type="button">
+          <svg class="bouton-son__icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" />
+            <path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+          </svg>
+          <!-- Sur mobile, ce texte est caché à l'écran mais reste lu : le bouton garde son nom -->
+          <span class="bouton-son__texte">Son coupé</span>
+        </button>
+      </header>
+
+      <!-- US4.3 : sommaire collant. Les liens visent les titres des sections ;
+           main.js fait défiler sans changer l'adresse (sinon on quitterait la page projet). -->
+      <nav class="sommaire" aria-label="Sommaire">
+        <ul>
+          <li><a href="#connect-contexte">Contexte</a></li>
+          <li><a href="#connect-problematique">Problématique</a></li>
+          <li><a href="#connect-realisations">Réalisations</a></li>
+          <li><a href="#connect-resultats">Résultats</a></li>
+        </ul>
+      </nav>
 
       <!-- US4.2 : une page projet = un <article>. Sa couleur d'accent est la variable --accent (magenta par défaut). -->
       <article class="projet" id="connect" aria-labelledby="connect-titre">
@@ -98,7 +172,7 @@
 
         <!-- ========== Contexte ========== -->
         <section class="projet__section" aria-labelledby="connect-contexte">
-          <h2 class="titre-section titre-neon" id="connect-contexte">Contexte</h2>
+          <h2 class="titre-section titre-neon" id="connect-contexte" tabindex="-1">Contexte</h2>
 
           <h3 class="sous-titre">L'entreprise</h3>
           <p class="paragraphe">
@@ -205,7 +279,7 @@
 
         <!-- ========== Problématique ========== -->
         <section class="projet__section" aria-labelledby="connect-problematique">
-          <h2 class="titre-section titre-neon" id="connect-problematique">Problématique</h2>
+          <h2 class="titre-section titre-neon" id="connect-problematique" tabindex="-1">Problématique</h2>
 
           <p class="carte-question cadre-neon">
             Comment faire adopter une marketplace à des professionnels du transport peu digitalisés, qui doivent
@@ -286,7 +360,7 @@
 
         <!-- ========== Réalisations : une frise en 4 étapes ========== -->
         <section class="projet__section" aria-labelledby="connect-realisations">
-          <h2 class="titre-section titre-neon" id="connect-realisations">Réalisations</h2>
+          <h2 class="titre-section titre-neon" id="connect-realisations" tabindex="-1">Réalisations</h2>
 
           <ol class="frise">
             <!-- Étape 1 -->
@@ -412,7 +486,7 @@
 
         <!-- ========== Résultats ========== -->
         <section class="projet__section" aria-labelledby="connect-resultats">
-          <h2 class="titre-section titre-neon" id="connect-resultats">Résultats</h2>
+          <h2 class="titre-section titre-neon" id="connect-resultats" tabindex="-1">Résultats</h2>
 
           <ul class="grille-2">
             <li class="cadre-neon carte-resultat">
