@@ -147,7 +147,8 @@ function relacherPression() {
    --------------------------------------------------------- */
 const vueProjet = document.querySelector('.vue-projet')
 const titreProjet = document.querySelector('#connect-titre')
-const boutonRetour = document.querySelector('.bouton-retour')
+// Deux boutons de retour : en haut de la page projet et dans le pied de page (US4.2)
+const boutonsRetour = document.querySelectorAll('.bouton-retour')
 const vinyleConnect = decor.querySelector('#vinyle-connect')
 
 const DUREE_FONDU = 250 // en millisecondes, identique à la transition du style.css
@@ -182,8 +183,10 @@ function ouvrirProjet() {
   afficherVue()
 }
 
-// 2. Bouton « ← Bibliothèque »
-boutonRetour.addEventListener('click', () => {
+// 2. Boutons « ← Bibliothèque » : forEach pose le même écouteur sur chacun
+boutonsRetour.forEach((bouton) => bouton.addEventListener('click', revenirALaBibliotheque))
+
+function revenirALaBibliotheque() {
   if (history.state && history.state.depuisAccueil) {
     // On vient de l'accueil : on recule d'un pas, exactement comme le bouton retour du navigateur
     history.back()
@@ -192,7 +195,7 @@ boutonRetour.addEventListener('click', () => {
     history.pushState(null, '', location.pathname + location.search)
     afficherVue()
   }
-})
+}
 
 // 3. Bouton retour / suivant du navigateur, ou adresse modifiée à la main
 window.addEventListener('popstate', afficherVue)

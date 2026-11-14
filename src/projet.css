@@ -207,6 +207,11 @@
   margin: 0;
 }
 
+/* … sauf le surtitre, qui garde son espace sous lui */
+.carte .surtitre {
+  margin-bottom: 12px;
+}
+
 /* Nom d'un produit (Smart, Marketplace → Connect) */
 .carte .carte__nom {
   margin-bottom: 10px;
@@ -351,6 +356,32 @@
   margin-bottom: 10px;
 }
 
+/* Mention « chiffres fictifs » : discrète mais lisible, sous les données qu'elle concerne */
+.mention-donnees {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.4;
+  color: rgb(245 243 255 / 0.6);
+}
+
+.carte .mention-donnees {
+  margin-top: 24px;
+}
+
+.mention-donnees svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
 /* =========================================================
    5. Sections (Contexte, Problématique…)
    ========================================================= */
@@ -406,7 +437,15 @@
    6. Problématique
    ========================================================= */
 
-/* Carte question : cadre néon accent, avec un grand guillemet décoratif */
+/* Cadre néon : pour mettre une carte en avant (carte question, résultats clés) */
+.cadre-neon {
+  background: rgb(30 26 43 / 0.95);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 90%, transparent);
+  border-radius: 20px;
+  box-shadow: var(--neon-cadre);
+}
+
+/* Carte question : cadre néon, avec un grand guillemet décoratif */
 .carte-question {
   position: relative;
   margin: 0 0 32px;
@@ -414,10 +453,6 @@
   font-size: clamp(20px, 3vw, 25px);
   font-weight: 700;
   line-height: 1.44;
-  background: rgb(30 26 43 / 0.95);
-  border: 1.5px solid color-mix(in srgb, var(--accent) 90%, transparent);
-  border-radius: 20px;
-  box-shadow: var(--neon-cadre);
 }
 
 /* Le guillemet est ajouté en CSS : décoratif, il n'est pas lu */
@@ -453,7 +488,7 @@
   top: 0.65em;
   width: 7px;
   height: 7px;
-  background: var(--accent);
+  background: var(--couleur, var(--accent)); /* dans une carte : la couleur de la carte */
   border-radius: 50%;
 }
 
@@ -539,6 +574,476 @@
 }
 
 /* =========================================================
+   6 bis. Variantes de couleur et petits éléments ajoutés en passe 2
+   ========================================================= */
+.carte--violet {
+  --couleur: var(--violet);
+}
+
+.carte--lavande {
+  --couleur: var(--lavande);
+  border-color: color-mix(in srgb, var(--lavande) 60%, transparent);
+}
+
+/* Surtitre qui prend la couleur de sa carte */
+.surtitre--carte {
+  color: var(--couleur, var(--accent));
+}
+
+.surtitre--lavande {
+  color: var(--lavande);
+}
+
+/* Carte qui suit une autre carte dans le même bloc */
+.carte--suite {
+  margin-top: 16px;
+}
+
+/* Liste à puces plus compacte, pour l'intérieur des cartes */
+.liste-puces--petite li {
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.liste-puces--petite li + li {
+  margin-top: 10px;
+}
+
+/* Liste sur 2 colonnes : on lit la 1re colonne de haut en bas, puis la 2e */
+.liste-puces--2-colonnes {
+  columns: 2;
+  column-gap: 32px;
+}
+
+.liste-puces--2-colonnes li {
+  break-inside: avoid; /* une puce n'est jamais coupée entre deux colonnes */
+  margin-bottom: 10px;
+}
+
+.liste-puces--2-colonnes li + li {
+  margin-top: 0;
+}
+
+/* Mot d'ordre d'une carte : italique, couleur de la carte */
+.carte .mot-ordre {
+  margin-bottom: 16px;
+  font-size: 15.5px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--couleur);
+}
+
+/* Phrase d'introduction d'une carte, en gras */
+.carte .carte__accroche {
+  margin-bottom: 20px;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* Petites pastilles alignées */
+.pastilles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.carte--violet .pastille {
+  --couleur: var(--violet);
+  padding: 5px 14px;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--violet) 15%, transparent);
+}
+
+/* =========================================================
+   6 ter. Réalisations : frise verticale en 4 étapes
+   ========================================================= */
+.projet .frise {
+  position: relative;
+  padding-left: 52px; /* place pour les ronds numérotés */
+}
+
+/* Le pointillé vertical qui relie les étapes : un dégradé « à rayures » de 2 px de large */
+.frise::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 30px;
+  bottom: 40px;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent) 40%, transparent) 0 3px,
+    transparent 3px 9px
+  );
+}
+
+.frise__etape {
+  position: relative;
+}
+
+.frise__etape + .frise__etape {
+  margin-top: 64px;
+}
+
+.frise__numero {
+  position: absolute;
+  left: -52px;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--fond);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+
+.frise__titre {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 30px; /* même hauteur que le rond : ils restent alignés */
+}
+
+.frise__sous-titre {
+  margin: 4px 0 22px;
+  font-size: 15px;
+  font-style: italic;
+  color: rgb(245 243 255 / 0.6);
+}
+
+.frise__note {
+  margin: 18px 0 0;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.5;
+  color: rgb(245 243 255 / 0.7);
+}
+
+/* Schéma MVP : 3 étapes reliées par des flèches */
+.parcours {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+}
+
+.parcours__etape,
+.boucle > li {
+  position: relative;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--texte-discret);
+}
+
+.parcours__etape {
+  padding: 16px 18px;
+  background: rgb(245 243 255 / 0.04);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 14px;
+}
+
+.parcours__etape--fin {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 90%, transparent);
+}
+
+.parcours__numero {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.parcours__etape strong,
+.boucle strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--texte);
+}
+
+/* La flèche entre deux étapes (sauf après la dernière) : décorative, non lue */
+.parcours__etape:not(:last-child)::after,
+.boucle > li:not(:last-child)::after {
+  content: '→';
+  content: '→' / '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: 36px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  transform: translateY(-50%);
+}
+
+/* Ce qu'on a livré */
+.carte .livre__titre {
+  margin-bottom: 18px;
+  font-family: var(--police-titre);
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--couleur);
+}
+
+.bloc-animation__cadre--carte {
+  margin-top: 14px;
+}
+
+/* Lancer et apprendre : 4 cartes, puis la flèche « on itère » */
+.boucle {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 30px;
+}
+
+.boucle > li {
+  padding: 18px;
+  font-size: 13.5px;
+}
+
+.boucle strong {
+  font-size: 16.5px;
+}
+
+.boucle > li:not(:last-child)::after {
+  width: 30px;
+}
+
+/* La flèche de retour : un cadre pointillé ouvert en haut, du milieu de la 1re carte au milieu de la 4e */
+.boucle__retour {
+  position: relative;
+  height: 26px;
+  margin: 4px 12% 36px;
+  border: 1.8px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+
+/* La pointe de flèche, en haut à gauche (vers la 1re carte) */
+.boucle__retour::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: -2px;
+  width: 9px;
+  height: 9px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 80%, transparent);
+  border-top: 2px solid color-mix(in srgb, var(--accent) 80%, transparent);
+  transform: rotate(45deg);
+}
+
+.boucle__retour span {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  font-size: 12.5px;
+  font-style: italic;
+  color: rgb(245 243 255 / 0.6);
+  white-space: nowrap;
+}
+
+/* =========================================================
+   6 quater. Résultats
+   ========================================================= */
+.carte-resultat {
+  padding: 26px 28px;
+}
+
+.carte-resultat__titre {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  font-family: var(--police-titre);
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--accent);
+}
+
+.carte-resultat .icone-ronde {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+}
+
+.carte-resultat .carte__texte {
+  margin: 0;
+  font-size: 15.5px;
+  color: var(--texte-doux);
+}
+
+.indicateurs,
+.verbatim,
+.retiens {
+  margin-top: 24px;
+  padding: 28px;
+}
+
+.indicateurs {
+  border-color: var(--bordure-discrete);
+}
+
+/* Une ligne = intitulé | barre | valeur */
+.indicateur {
+  display: grid;
+  /* Colonnes de largeur fixe : les barres ont toutes la même longueur, les repères s'alignent */
+  grid-template-columns: 180px minmax(0, 1fr) 230px;
+  align-items: center;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.indicateur__nom {
+  font-size: 15.5px;
+  font-weight: 700;
+}
+
+.indicateur__valeur {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.indicateur--manque .indicateur__valeur {
+  color: var(--orange);
+}
+
+/* La barre : un rail gris, le remplissage (::before) et le repère d'objectif (::after) */
+.barre {
+  position: relative;
+  height: 12px;
+  background: rgb(245 243 255 / 0.08);
+  border-radius: 6px;
+}
+
+.barre::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0; /* collé en haut, en bas et à gauche */
+  width: var(--reel);
+  background: var(--degrade-chiffre);
+  border-radius: 6px;
+}
+
+.indicateur--manque .barre::before {
+  background: var(--orange);
+}
+
+/* Repère d'objectif à 80 % (voir le commentaire dans index.html) */
+.barre::after {
+  content: '';
+  position: absolute;
+  left: 80%;
+  top: -7px;
+  width: 2px;
+  height: 26px;
+  background: rgb(245 243 255 / 0.6);
+}
+
+/* Verbatim */
+.verbatim figure,
+.verbatim blockquote {
+  margin: 0;
+}
+
+.verbatim blockquote p {
+  font-family: var(--police-titre);
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.2;
+  background: var(--degrade-chiffre);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.verbatim figcaption {
+  margin-top: 12px;
+  font-size: 15px;
+  font-style: italic;
+  color: rgb(245 243 255 / 0.6);
+}
+
+/* Ce que j'en retiens */
+.retiens {
+  background: rgb(23 23 31 / 0.85);
+}
+
+.retiens p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--texte-doux);
+}
+
+.retiens p + p {
+  margin-top: 16px;
+}
+
+/* =========================================================
+   6 quinquies. Pied de page
+   ========================================================= */
+.projet__pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 120px;
+}
+
+.bouton-retour--pied {
+  padding: 10px 22px;
+}
+
+/* Carte « Projet suivant » : inactive pour l'instant (lien sans adresse) */
+.projet-suivant {
+  --couleur: var(--soleil);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 26px;
+  color: var(--texte);
+  text-decoration: none;
+  background: var(--surface-carte);
+  border-color: color-mix(in srgb, var(--soleil) 45%, transparent);
+}
+
+.projet-suivant__vinyle {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  fill: var(--fond);
+  stroke: rgb(245 243 255 / 0.2);
+}
+
+.projet-suivant__etiquette {
+  fill: var(--soleil);
+  stroke: none;
+}
+
+.projet-suivant .surtitre {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11.5px;
+}
+
+.projet-suivant__titre {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+/* =========================================================
    7. Sous 768 px : une seule colonne, les cartes s'empilent
    ========================================================= */
 @media (max-width: 767px) {
@@ -598,5 +1103,94 @@
 
   .pastille--large {
     border-radius: 16px; /* sur 2 lignes, une pilule parfaite serait déformée */
+  }
+
+  /* Frise : on resserre le retrait à gauche */
+  .projet .frise {
+    padding-left: 40px;
+  }
+
+  .frise::before {
+    left: 13px;
+  }
+
+  .frise__numero {
+    left: -40px;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  .frise__titre {
+    font-size: 21px;
+    line-height: 28px;
+  }
+
+  /* Schéma MVP et boucle : les étapes s'empilent, les flèches pointent vers le bas */
+  .parcours,
+  .boucle {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 30px;
+  }
+
+  .parcours__etape:not(:last-child)::after,
+  .boucle > li:not(:last-child)::after {
+    content: '↓';
+    content: '↓' / '';
+    left: 50%;
+    top: 100%;
+    width: 30px;
+    line-height: 30px;
+    transform: translateX(-50%);
+  }
+
+  /* La flèche en boucle ne tient pas : on garde seulement le texte */
+  .boucle__retour {
+    height: auto;
+    margin: 12px 0 0;
+    border: none;
+    text-align: center;
+  }
+
+  .boucle__retour::before {
+    display: none;
+  }
+
+  .boucle__retour span {
+    position: static;
+    transform: none;
+  }
+
+  .boucle__retour span::before {
+    content: '↺ ';
+    content: '↺ ' / '';
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .liste-puces--2-colonnes {
+    columns: 1;
+  }
+
+  .indicateurs,
+  .verbatim,
+  .retiens {
+    padding: 20px;
+  }
+
+  /* Intitulé, barre et valeur s'empilent */
+  .indicateur {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .projet__pied {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 80px;
+  }
+
+  .bouton-retour--pied {
+    justify-content: center;
   }
 }

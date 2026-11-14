@@ -80,12 +80,20 @@
               <span class="chiffre">2 mois</span> délai fixé par les investisseurs : tenu
             </li>
             <li class="carte carte--degrade">
-              <span class="chiffre">20</span> ordres d'affrètement, objectif atteint
+              <span class="chiffre">25</span> ordres d'affrètement, objectif dépassé
             </li>
             <li class="carte carte--degrade">
               <span class="chiffre">&lt; 3 min</span> pour publier un lot (objectif)
             </li>
           </ul>
+          <!-- Mention de confidentialité : les chiffres affichés sont fictifs -->
+          <p class="mention-donnees">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v6M12 7.5v.5" />
+            </svg>
+            Chiffres fictifs, modifiés par souci de confidentialité.
+          </p>
         </header>
 
         <!-- ========== Contexte ========== -->
@@ -199,7 +207,7 @@
         <section class="projet__section" aria-labelledby="connect-problematique">
           <h2 class="titre-section titre-neon" id="connect-problematique">Problématique</h2>
 
-          <p class="carte-question">
+          <p class="carte-question cadre-neon">
             Comment faire adopter une marketplace à des professionnels du transport peu digitalisés, qui doivent
             négocier vite et ont l'habitude du téléphone ?
           </p>
@@ -276,7 +284,222 @@
           </div>
         </section>
 
-        <!-- Passe 2 de la Story 4.2 : Réalisations, Résultats, pied de page -->
+        <!-- ========== Réalisations : une frise en 4 étapes ========== -->
+        <section class="projet__section" aria-labelledby="connect-realisations">
+          <h2 class="titre-section titre-neon" id="connect-realisations">Réalisations</h2>
+
+          <ol class="frise">
+            <!-- Étape 1 -->
+            <li class="frise__etape">
+              <span class="frise__numero" aria-hidden="true">1</span>
+              <h3 class="frise__titre">Comprendre</h3>
+              <p class="frise__sous-titre">Discovery : partir du terrain</p>
+              <div class="grille-2">
+                <div class="carte">
+                  <p class="surtitre surtitre--carte">Connect</p>
+                  <p class="mot-ordre">« Une plateforme simple et facile à utiliser »</p>
+                  <ul class="liste-puces liste-puces--petite">
+                    <li>Ateliers avec les sales et le customer care pour comprendre le monde du transport</li>
+                    <li>Ateliers de conception avec l'équipe produit, les métiers, puis les développeurs</li>
+                    <li>Benchmark concurrentiel</li>
+                    <li>Parcours prototypés et validés avec les bêta-testeurs</li>
+                  </ul>
+                </div>
+                <div class="carte carte--violet">
+                  <p class="surtitre surtitre--carte">Back office</p>
+                  <p class="mot-ordre">« Suivre en temps réel ce qui se passe sur Connect »</p>
+                  <ul class="liste-puces liste-puces--petite">
+                    <li>Ateliers avec les sales et le customer care pour comprendre leurs besoins</li>
+                    <li>Ateliers de conception avec l'équipe produit, puis les développeurs</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+
+            <!-- Étape 2 -->
+            <li class="frise__etape">
+              <span class="frise__numero" aria-hidden="true">2</span>
+              <h3 class="frise__titre">Découper en MVP</h3>
+              <p class="frise__sous-titre">2 mois, une petite équipe : aller à l'essentiel</p>
+              <div class="carte">
+                <p class="surtitre surtitre--carte">MVP Connect</p>
+                <p class="carte__accroche">Un ordre de transport doit pouvoir se conclure de bout en bout sur la plateforme.</p>
+                <!-- Schéma en 3 étapes : les flèches entre les étapes sont dessinées en CSS -->
+                <ol class="parcours">
+                  <li class="parcours__etape">
+                    <span class="parcours__numero">01</span>
+                    <strong>Chargeur</strong> publie un lot
+                  </li>
+                  <li class="parcours__etape">
+                    <span class="parcours__numero">02</span>
+                    <strong>Transporteur</strong> envoie une offre
+                  </li>
+                  <li class="parcours__etape parcours__etape--fin">
+                    <span class="parcours__numero">03</span>
+                    <strong>Plateforme</strong> génère l'ordre d'affrètement
+                  </li>
+                </ol>
+              </div>
+              <div class="carte carte--violet carte--suite">
+                <p class="surtitre surtitre--carte">MVP back office</p>
+                <p class="carte__accroche">Les équipes internes consultent toute l'activité :</p>
+                <ul class="pastilles">
+                  <li class="pastille">Lots publiés</li>
+                  <li class="pastille">Offres envoyées</li>
+                  <li class="pastille">Ordres d'affrètement</li>
+                </ul>
+              </div>
+              <p class="frise__note">J'ai ensuite construit la roadmap et priorisé les epics à partir de ce découpage.</p>
+            </li>
+
+            <!-- Étape 3 -->
+            <li class="frise__etape">
+              <span class="frise__numero" aria-hidden="true">3</span>
+              <h3 class="frise__titre">Ce qu'on a livré</h3>
+              <p class="frise__sous-titre">Des choix produit au service de la rapidité</p>
+              <div class="carte">
+                <p class="surtitre surtitre--carte">Chargeurs</p>
+                <p class="livre__titre">Publier un lot en moins de 3 minutes</p>
+                <ul class="liste-puces liste-puces--petite liste-puces--2-colonnes">
+                  <li>Formulaire réduit : le minimum de critères, on en ajoutera si besoin</li>
+                  <li>Adresses complétées automatiquement (Google)</li>
+                  <li>Un lot récurrent se duplique en un clic</li>
+                  <li>Liste des lots épurée, statuts clairs</li>
+                  <li>E-mail dès qu'un transporteur fait une offre</li>
+                </ul>
+                <!-- Emplacement de l'animation « parcours chargeur » : l'iframe arrive en Story 4.4 -->
+                <div class="bloc-animation__cadre bloc-animation__cadre--carte"></div>
+              </div>
+              <div class="carte carte--bleu carte--suite">
+                <p class="surtitre surtitre--carte">Transporteurs</p>
+                <p class="livre__titre">Trouver le bon lot et négocier en direct</p>
+                <ul class="liste-puces liste-puces--petite liste-puces--2-colonnes">
+                  <li>Recherche simple : destination et marchandise en première vue</li>
+                  <li>Offre courte et suivi simplifié, pour négocier en direct</li>
+                  <li>Recherches enregistrées : e-mail quand un nouveau lot correspond</li>
+                </ul>
+                <!-- Emplacement de l'animation « parcours transporteur » : l'iframe arrive en Story 4.4 -->
+                <div class="bloc-animation__cadre bloc-animation__cadre--carte"></div>
+              </div>
+              <div class="carte carte--violet carte--suite">
+                <p class="surtitre surtitre--carte">Équipes internes</p>
+                <p class="livre__titre">Un back office repensé</p>
+                <ul class="liste-puces liste-puces--petite liste-puces--2-colonnes">
+                  <li>Une vue chargeurs et une vue transporteurs</li>
+                  <li>Le détail de chaque lot et de chaque offre (MVP)</li>
+                </ul>
+              </div>
+            </li>
+
+            <!-- Étape 4 -->
+            <li class="frise__etape">
+              <span class="frise__numero" aria-hidden="true">4</span>
+              <h3 class="frise__titre">Lancer et apprendre</h3>
+              <p class="frise__sous-titre">Une bêta suivie pendant 2 mois</p>
+              <ol class="boucle">
+                <li class="carte carte--degrade"><strong>Lancement</strong> auprès des 4 entreprises bêta</li>
+                <li class="carte carte--degrade"><strong>Entretiens</strong> pour recueillir les retours</li>
+                <li class="carte carte--degrade">
+                  <strong>Indicateurs</strong> ordres d'affrètement, utilisateurs actifs
+                </li>
+                <li class="carte carte--degrade"><strong>Améliorations</strong> à partir des retours</li>
+              </ol>
+              <!-- Flèche pointillée qui revient à la première carte (dessinée en CSS) -->
+              <p class="boucle__retour"><span>on itère</span></p>
+            </li>
+          </ol>
+        </section>
+
+        <!-- ========== Résultats ========== -->
+        <section class="projet__section" aria-labelledby="connect-resultats">
+          <h2 class="titre-section titre-neon" id="connect-resultats">Résultats</h2>
+
+          <ul class="grille-2">
+            <li class="cadre-neon carte-resultat">
+              <p class="carte-resultat__titre">
+                <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M7 12l4 4 7-8" />
+                </svg>
+                Délai tenu
+              </p>
+              <p class="carte__texte">Connect et le back office lancés dans les 2 mois attendus par les investisseurs.</p>
+            </li>
+            <li class="cadre-neon carte-resultat">
+              <p class="carte-resultat__titre">
+                <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M7 12l4 4 7-8" />
+                </svg>
+                25 ordres d'affrètement
+              </p>
+              <p class="carte__texte">générés pendant la bêta : l'objectif est dépassé.</p>
+            </li>
+          </ul>
+
+          <!-- Barres « objectif → réel ».
+               Échelle commune : la barre entière = 125 % de l'objectif, donc le repère d'objectif est à 80 %.
+               --reel = réel ÷ (objectif × 1,25) : 25 ÷ 25 = 100 % ; 4 ÷ 15 ≈ 27 %.
+               Les barres sont décoratives (aria-hidden) : le texte à droite donne déjà les chiffres. -->
+          <div class="carte indicateurs">
+            <h3 class="surtitre surtitre--soleil">Indicateurs à 2 mois</h3>
+            <ul>
+              <li class="indicateur">
+                <span class="indicateur__nom">Ordres d'affrètement</span>
+                <span class="barre" style="--reel: 100%" aria-hidden="true"></span>
+                <span class="indicateur__valeur">25 / 20 · objectif dépassé</span>
+              </li>
+              <li class="indicateur indicateur--manque">
+                <span class="indicateur__nom">Utilisateurs actifs</span>
+                <span class="barre" style="--reel: 26.7%" aria-hidden="true"></span>
+                <span class="indicateur__valeur">4 / 12 · en dessous de l'objectif</span>
+              </li>
+            </ul>
+            <p class="mention-donnees">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v6M12 7.5v.5" />
+              </svg>
+              Chiffres fictifs, modifiés par souci de confidentialité.
+            </p>
+          </div>
+
+          <div class="carte carte--degrade verbatim">
+            <h3 class="surtitre">Ce que disaient les bêta-testeurs</h3>
+            <!-- <figure> + <blockquote> : la façon HTML d'écrire une citation et sa légende -->
+            <figure>
+              <blockquote><p>« Simple, intuitif et facile. »</p></blockquote>
+              <figcaption>Les mots qui revenaient le plus souvent dans leurs retours.</figcaption>
+            </figure>
+          </div>
+
+          <div class="carte carte--lavande retiens">
+            <h3 class="surtitre surtitre--lavande">Ce que j'en retiens</h3>
+            <p>
+              Le produit tenait sa promesse : les utilisateurs engagés publiaient des lots et faisaient des offres, et
+              l'objectif d'ordres d'affrètement a été atteint.
+            </p>
+            <p>
+              Le vrai défi était ailleurs : l'adoption. Il fallait convaincre davantage d'utilisateurs dans chaque
+              entreprise. Nous avons donc concentré la discovery suivante sur cette question : donner envie d'adopter
+              l'outil, au sein des entreprises clientes comme auprès de nouvelles entreprises.
+            </p>
+          </div>
+        </section>
+
+        <!-- ========== Pied de page ========== -->
+        <footer class="projet__pied">
+          <button class="bouton-retour bouton-retour--pied" type="button">← Retour à la bibliothèque</button>
+          <!-- Lien inactif pour l'instant : sans href, il n'est ni cliquable ni atteignable avec Tab -->
+          <a class="projet-suivant carte">
+            <svg class="projet-suivant__vinyle" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+              <circle cx="24" cy="24" r="23" />
+              <circle cx="24" cy="24" r="9" class="projet-suivant__etiquette" />
+            </svg>
+            <span>
+              <span class="surtitre surtitre--soleil">Projet suivant →</span>
+              <span class="projet-suivant__titre">Refonte de la page indice de prix</span>
+            </span>
+          </a>
+        </footer>
       </article>
     </main>
 
