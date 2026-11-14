@@ -1,4 +1,5 @@
 import './style.css'
+import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS

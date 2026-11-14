@@ -1,17 +1,50 @@
 /* =========================================================
-   1. Variables : les couleurs de la direction artistique
+   1. Variables : la direction artistique, réutilisable partout
+   (accueil et pages projet)
    ========================================================= */
 :root {
+  /* Couleurs */
   --fond: #0b0b12;
   --surface: #17171f;
   --texte: #f5f3ff;
   --magenta: #ff4fa0;
   --soleil: #ffc46b;
+  --bleu: #3b82f6;
   --violet-neon: #b23fe0;
+  --orange: #fb8c80;
+  --violet: #8b5cf6;
   --lavande: #c084fc;
+
+  /* Nuances du texte (le blanc, plus ou moins transparent) */
+  --texte-doux: rgb(245 243 255 / 0.85); /* paragraphes */
+  --texte-discret: rgb(245 243 255 / 0.72); /* textes secondaires des cartes */
+  --bordure-discrete: rgb(245 243 255 / 0.14);
+  --surface-carte: rgb(23 23 31 / 0.75); /* surface un peu transparente : on devine le fond */
+
+  /* Couleur d'accent de la page projet : chaque projet peut la changer */
+  --accent: var(--magenta);
 
   /* Dégradé signature « Sunset néon » */
   --sunset-neon: linear-gradient(90deg, #ffc46b, #ff8a6b, #ff4fa0, #b23fe0, #4b1fa0);
+  /* Variante courte, pour les chiffres et les filets (s'arrête au violet néon) */
+  --degrade-chiffre: linear-gradient(90deg, #ffc46b 0%, #ff8a6b 30%, #ff4fa0 60%, #b23fe0 100%);
+
+  /* Polices */
+  --police-nom: 'Monoton', cursive;
+  --police-titre: 'Tilt Neon', sans-serif;
+  --police-texte: 'Nunito', system-ui, sans-serif;
+
+  /* Effets néon. color-mix() mélange une couleur avec du transparent : 35 % = halo léger */
+  --neon-texte:
+    0 0 6px color-mix(in srgb, var(--accent) 60%, transparent),
+    0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  --neon-cadre:
+    0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 24px color-mix(in srgb, var(--accent) 25%, transparent);
+
+  /* Formes */
+  --rayon-carte: 16px;
+  --rayon-pastille: 999px;
 }
 
 /* =========================================================
@@ -413,56 +446,7 @@ html.mode-projet body {
   overflow: visible;
 }
 
-/* =========================================================
-   9 sexies. Vue projet : mise en page provisoire (la vraie arrive en 4.2)
-   ========================================================= */
-.vue-projet {
-  max-width: 740px;
-  margin: 0 auto;
-  padding: 32px 16px 64px;
-}
-
-.bouton-retour {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 18px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--texte);
-  background: var(--surface);
-  border: 1px solid rgb(245 243 255 / 0.18);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.bouton-retour:hover {
-  border-color: var(--lavande);
-}
-
-.bouton-retour:focus-visible {
-  outline: 2px solid var(--lavande);
-  outline-offset: 3px;
-}
-
-.projet__titre {
-  margin: 48px 0 16px;
-  font-family: 'Tilt Neon', sans-serif;
-  font-weight: 400;
-  font-size: clamp(32px, 5vw, 48px);
-  line-height: 1.15;
-  text-shadow: 0 0 12px rgb(255 79 160 / 0.6);
-}
-
-/* Le titre reçoit le focus par programme : pas de cadre, il est déjà bien visible */
-.projet__titre:focus {
-  outline: none;
-}
-
-.projet__provisoire {
-  margin: 0;
-  color: rgb(245 243 255 / 0.75);
-}
+/* Section 9 sexies (vue projet) : déplacée dans src/projet.css (US4.2) */
 
 /* =========================================================
    10. Réglage « réduire les animations » : aucun mouvement

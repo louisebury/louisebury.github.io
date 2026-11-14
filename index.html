@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Monoton&family=Nunito:wght@400;600;700&family=Tilt+Neon&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Monoton&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Tilt+Neon&display=swap"
     />
   </head>
   <body>
@@ -50,11 +50,234 @@
     <main class="vue-projet" hidden>
       <button class="bouton-retour" type="button">← Bibliothèque</button>
 
-      <section class="projet" id="connect" aria-labelledby="connect-titre">
-        <!-- tabindex="-1" : le titre peut recevoir le focus par JavaScript (pas avec Tab) -->
-        <h1 class="projet__titre" id="connect-titre" tabindex="-1">Lancement du produit Connect</h1>
-        <p class="projet__provisoire">Le contenu de ce projet arrive bientôt.</p>
-      </section>
+      <!-- US4.2 : une page projet = un <article>. Sa couleur d'accent est la variable --accent (magenta par défaut). -->
+      <article class="projet" id="connect" aria-labelledby="connect-titre">
+        <!-- ========== En-tête ========== -->
+        <header class="projet__entete">
+          <p class="surtitre">Étude de cas · Transport B2B</p>
+          <!-- tabindex="-1" : le titre peut recevoir le focus par JavaScript (pas avec Tab) -->
+          <h1 class="projet__titre titre-neon" id="connect-titre" tabindex="-1">Lancement du produit Connect</h1>
+          <p class="projet__accroche">
+            Une première marketplace de transport n'avait pas trouvé son marché. J'ai été recrutée pour la relancer en
+            deux mois, en plus simple et plus proche du terrain, avec le back office qui va avec.
+          </p>
+
+          <!-- Fiche d'identité : <dl> = liste de paires « intitulé (dt) : valeur (dd) » -->
+          <dl class="fiche-identite carte">
+            <div><dt>Entreprise</dt><dd>Upply · start-up supply chain</dd></div>
+            <div><dt>Mon rôle</dt><dd>Product Manager</dd></div>
+            <div><dt>Marché</dt><dd>Transport routier · B2B</dd></div>
+            <div><dt>Équipe produit</dt><dd>1 CPO · 2 UX designers · 1 PM</dd></div>
+            <div><dt>Utilisateurs</dt><dd>Chargeurs · transporteurs · sales</dd></div>
+            <div><dt>Durée</dt><dd>2 mois de build + 2 mois de bêta</dd></div>
+          </dl>
+
+          <ul class="chiffres-cles" aria-label="En un coup d'œil">
+            <li class="carte carte--degrade">
+              <span class="chiffre">2</span> produits lancés en parallèle
+            </li>
+            <li class="carte carte--degrade">
+              <span class="chiffre">2 mois</span> délai fixé par les investisseurs : tenu
+            </li>
+            <li class="carte carte--degrade">
+              <span class="chiffre">20</span> ordres d'affrètement, objectif atteint
+            </li>
+            <li class="carte carte--degrade">
+              <span class="chiffre">&lt; 3 min</span> pour publier un lot (objectif)
+            </li>
+          </ul>
+        </header>
+
+        <!-- ========== Contexte ========== -->
+        <section class="projet__section" aria-labelledby="connect-contexte">
+          <h2 class="titre-section titre-neon" id="connect-contexte">Contexte</h2>
+
+          <h3 class="sous-titre">L'entreprise</h3>
+          <p class="paragraphe">
+            Upply est une start-up qui met la tech au service de la supply chain. À l'époque, elle porte deux produits :
+          </p>
+          <ul class="grille-2">
+            <li class="carte carte--bandeau carte--bleu">
+              <p class="carte__nom">Smart</p>
+              <p class="pastille">Déjà commercialisé</p>
+              <p class="carte__texte">
+                Comparer ses prix de transport grâce à plus de 2 milliards de données. Il commence à faire ses preuves.
+              </p>
+            </li>
+            <li class="carte carte--bandeau">
+              <p class="carte__nom">Marketplace → Connect</p>
+              <p class="pastille">Le projet</p>
+              <p class="carte__texte">
+                Mettre en relation chargeurs (un fret à transporter) et transporteurs (un camion disponible) pour
+                conclure un ordre de transport.
+              </p>
+            </li>
+          </ul>
+
+          <h3 class="sous-titre">Le point de départ : un premier lancement manqué</h3>
+          <p class="paragraphe">
+            La Marketplace a été construite et commercialisée en 2020. Le lancement a été un échec commercial : le
+            produit ne répondait pas aux attentes du terrain.
+          </p>
+          <!-- Les 4 raisons de l'échec. Les icônes sont décoratives (aria-hidden) : le titre suffit. -->
+          <ul class="grille-2" aria-label="Pourquoi ça n'a pas marché">
+            <li class="carte carte--orange">
+              <p class="carte__titre">
+                <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect x="5" y="3" width="14" height="18" rx="2" />
+                  <path d="M9 9H15M9 14H15" />
+                </svg>
+                Un formulaire trop long
+              </p>
+              <p class="carte__texte">Publier un besoin de transport prenait trop de temps.</p>
+            </li>
+            <li class="carte carte--orange">
+              <p class="carte__titre">
+                <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 5q0 14 14 14l2-4-4-3-2 2q-5-2-7-7l2-2-3-4z" />
+                </svg>
+                Des habitudes ancrées
+              </p>
+              <p class="carte__texte">Carnet d'adresses et négociation au téléphone : difficile à changer.</p>
+            </li>
+            <li class="carte carte--orange">
+              <p class="carte__titre">
+                <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="13" r="8" />
+                  <path d="M12 13V8M9 2H15" />
+                </svg>
+                Des utilisateurs peu digitalisés
+              </p>
+              <p class="carte__texte">Leur quotidien exige d'aller vite. L'outil les ralentissait.</p>
+            </li>
+            <li class="carte carte--orange">
+              <p class="carte__titre">
+                <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="8" cy="12" r="6" />
+                  <circle cx="16" cy="12" r="6" />
+                </svg>
+                Un matching trop rigide
+              </p>
+              <p class="carte__texte">
+                Il attendait que des critères précis coïncident, alors que le terrain négocie au jour le jour.
+              </p>
+            </li>
+          </ul>
+          <p class="resultat">Résultat : le produit ne se vendait pas, et les équipes s'essoufflaient.</p>
+
+          <!-- Emplacement de l'animation « avant » : l'iframe arrive en Story 4.4 -->
+          <div class="bloc-animation">
+            <p class="surtitre surtitre--orange">L'ancien parcours, reconstitué</p>
+            <div class="bloc-animation__cadre"></div>
+          </div>
+
+          <h3 class="sous-titre">Ma mission</h3>
+          <ol class="grille-3 mission">
+            <li class="carte carte--degrade">
+              <span class="chiffre" aria-hidden="true">1</span>
+              <p class="carte__titre">Relancer la marketplace</p>
+              <p class="carte__texte">beaucoup plus simple, facile à prendre en main</p>
+            </li>
+            <li class="carte carte--degrade">
+              <span class="chiffre" aria-hidden="true">2</span>
+              <p class="carte__titre">Refondre le back office</p>
+              <p class="carte__texte">des sales et du customer care, pour suivre l'activité</p>
+            </li>
+            <li class="carte carte--degrade">
+              <span class="chiffre" aria-hidden="true">3</span>
+              <p class="carte__titre">Tenir le délai</p>
+              <p class="carte__texte">fixé par les investisseurs</p>
+            </li>
+          </ol>
+          <p class="pastille pastille--soleil pastille--large">
+            <span aria-hidden="true">⚠</span> Contexte : réorganisation de l'équipe produit et de l'entreprise, tout est
+            à construire
+          </p>
+        </section>
+
+        <!-- ========== Problématique ========== -->
+        <section class="projet__section" aria-labelledby="connect-problematique">
+          <h2 class="titre-section titre-neon" id="connect-problematique">Problématique</h2>
+
+          <p class="carte-question">
+            Comment faire adopter une marketplace à des professionnels du transport peu digitalisés, qui doivent
+            négocier vite et ont l'habitude du téléphone ?
+          </p>
+          <ul class="liste-puces">
+            <li>
+              Comment s'adapter à leurs contraintes quotidiennes, pour qu'ils négocient une offre de transport plus vite
+              qu'au téléphone ?
+            </li>
+            <li>
+              Comment donner aux équipes internes un back office qui leur permette de suivre ce qui se passe sur la
+              plateforme ?
+            </li>
+          </ul>
+
+          <div class="grille-2 grille-2--colonnes">
+            <div class="carte carte--soleil">
+              <h3 class="surtitre surtitre--soleil">Les contraintes</h3>
+              <ul class="contraintes">
+                <li>
+                  <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="4" y="5" width="16" height="15" rx="2" />
+                    <path d="M4 10H20M8 2V7M16 2V7" />
+                  </svg>
+                  <p><strong>Délai</strong> 2 mois, fixés par les investisseurs</p>
+                </li>
+                <li>
+                  <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="8" cy="9" r="3.5" />
+                    <circle cx="17" cy="9" r="3.5" />
+                    <path d="M2 20q6-8 12 0M12 20q5-8 11 0" />
+                  </svg>
+                  <p><strong>Moyens</strong> Équipes produit et dev réduites</p>
+                </li>
+                <li>
+                  <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 19L12 4L20 19ZM12 10V14" />
+                    <circle cx="12" cy="17" r="0.8" class="icone-plein" />
+                  </svg>
+                  <p><strong>Organisation</strong> Équipe produit en réorganisation</p>
+                </li>
+                <li>
+                  <svg class="icone-ronde" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="3" y="5" width="8" height="14" rx="2" />
+                    <rect x="13" y="5" width="8" height="14" rx="2" />
+                  </svg>
+                  <p><strong>Périmètre</strong> 2 produits en parallèle</p>
+                </li>
+              </ul>
+            </div>
+
+            <div class="carte carte--degrade">
+              <h3 class="surtitre">Comment on mesure le succès</h3>
+              <p class="carte__texte succes__intro">
+                Bêta de 2 mois avec 4 entreprises choisies par les sales (2 chargeurs, 2 transporteurs).
+              </p>
+              <ul class="objectifs">
+                <li>
+                  <span class="chiffre chiffre--grand">12</span>
+                  <p>
+                    <span class="objectifs__etiquette">Objectif à 2 mois</span>
+                    <strong>utilisateurs actifs</strong>
+                    <span class="objectifs__detail">soit 3 par entreprise</span>
+                  </p>
+                </li>
+                <li>
+                  <span class="chiffre chiffre--grand">20</span>
+                  <p>
+                    <span class="objectifs__etiquette">Objectif à 2 mois</span>
+                    <strong>ordres d'affrètement</strong>
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Passe 2 de la Story 4.2 : Réalisations, Résultats, pied de page -->
+      </article>
     </main>
 
     <script type="module" src="/src/main.js"></script>
