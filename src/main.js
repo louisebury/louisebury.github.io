@@ -1,6 +1,7 @@
 import './style.css'
 import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
+import { activerEffetsDefilement } from './effets-defilement.js' // US4.5
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS
 const decor = document.querySelector('#decor')
@@ -224,6 +225,8 @@ function afficherVue({ instantane = false } = {}) {
     // La page projet peut défiler, l'accueil non (voir .mode-projet dans style.css)
     document.documentElement.classList.toggle('mode-projet', versProjet)
     window.scrollTo(0, 0) // la vue s'ouvre toujours en haut
+    // US4.5 : la vue projet est maintenant affichée et mesurable : on lance (ou recalcule) les effets
+    if (versProjet) activerEffetsDefilement()
 
     if (instantane) return // ouverture directe : on ne déplace pas le focus
     // Focus : sur le titre du projet à l'ouverture, sur le vinyle Connect au retour
