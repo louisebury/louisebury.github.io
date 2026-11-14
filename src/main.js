@@ -381,3 +381,40 @@ function fermerMenuProjets() {
   boutonProjets.setAttribute('aria-expanded', 'false')
   listeProjets.classList.remove('est-ouvert')
 }
+
+/* ---------------------------------------------------------
+   US4.4 : animations de wireframes (dans des iframes)
+   Elles jouent seulement quand elles sont visibles à l'écran.
+   La page envoie un message « lecture » ou « pause » à chaque iframe ;
+   le fichier de l'animation l'écoute (voir public/wireframes/).
+   --------------------------------------------------------- */
+const iframesAnimation = document.querySelectorAll('.bloc-animation__iframe')
+const iframesVisibles = new Set() // les iframes actuellement à l'écran
+
+function envoyerEtat(iframe) {
+  // Pas de « lecture » si le visiteur a demandé de réduire les animations :
+  // le fichier affiche déjà son image finale.
+  const message = iframesVisibles.has(iframe) && !reduireAnimations.matches ? 'lecture' : 'pause'
+  // contentWindow = la fenêtre de l'iframe ; location.origin = on ne parle qu'à notre propre site
+  if (iframe.contentWindow) iframe.contentWindow.postMessage(message, location.origin)
+}
+
+// L'observateur prévient quand une iframe est visible à au moins 25 %, ou ne l'est plus.
+// Quand on revient à la bibliothèque, la page projet est cachée : les iframes « sortent » et se mettent en pause.
+const observateurAnimations = new IntersectionObserver(
+  (entrees) => {
+    entrees.forEach((entree) => {
+      if (entree.isIntersecting) iframesVisibles.add(entree.target)
+      else iframesVisibles.delete(entree.target)
+      envoyerEtat(entree.target)
+    })
+  },
+  { threshold: 0.25 }
+)
+
+iframesAnimation.forEach((iframe) => {
+  observateurAnimations.observe(iframe)
+  // L'iframe peut finir de charger après être devenue visible : le premier message serait perdu.
+  // On le renvoie donc une fois le chargement terminé.
+  iframe.addEventListener('load', () => envoyerEtat(iframe))
+})

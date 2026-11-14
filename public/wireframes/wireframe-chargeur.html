@@ -3,10 +3,10 @@
 <title>Connect, parcours chargeur : publier un lot et suivre ses lots</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;background:#0B0B12;color:#F5F3FF;font-family:Nunito,Inter,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+  body{margin:0;background:#0B0B12;color:#F5F3FF;font-family:Nunito,Inter,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;padding:0;overflow:hidden}
   #scene{width:100%;max-width:1200px}
   #wf{width:100%;height:auto;display:block}
-  .barre{width:100%;max-width:1200px;display:flex;gap:10px;align-items:center;margin-top:10px}
+  .barre{width:100%;max-width:1200px;display:flex;gap:10px;align-items:center;margin-top:6px}
   button{font:700 13px Nunito,Inter,Arial,sans-serif;color:#F5F3FF;background:#17171F;border:1px solid rgba(255,79,160,.5);border-radius:999px;padding:8px 16px;cursor:pointer}
   button:hover{background:rgba(255,79,160,.15)}
   #prog{flex:1;height:6px;background:#17171F;border-radius:3px;position:relative;cursor:pointer}
@@ -78,10 +78,20 @@ function boucle(ts){
   avant = ts; rendu(Math.min(t, D.total)); requestAnimationFrame(boucle);
 }
 function majBouton(){ $('lecture').textContent = lecture ? '⏸ Pause' : '▶ Lecture'; $('lecture').setAttribute('aria-label', lecture ? 'Pause' : 'Lecture'); }
-$('lecture').onclick = () => { lecture = !lecture; majBouton(); };
+$('lecture').onclick = () => { lecture = !lecture; pauseVisiteur = !lecture; majBouton(); };
 $('prog').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); t = D.total * (e.clientX - r.left) / r.width; };
 window.seek = s => { t = s; lecture = false; rendu(s); };   // utile pour les tests et l'intégration
 if (reduit){ lecture = false; t = D.total; majBouton(); }   // image finale, sans mouvement
+// Intégration dans la page projet (US4.4) : la page envoie « lecture » ou « pause » selon la visibilité.
+let pauseVisiteur = false;   // true si le visiteur a mis en pause lui-même avec le bouton
+if (window.parent !== window && !reduit){ lecture = false; majBouton(); }   // dans une iframe : on attend « lecture »
+window.addEventListener('message', e => {
+  if (e.origin !== location.origin) return;   // seulement les messages venant du même site
+  if (e.data === 'pause') lecture = false;
+  else if (e.data === 'lecture' && !pauseVisiteur && !reduit) lecture = true;
+  else return;
+  majBouton();
+});
 requestAnimationFrame(boucle);
 </script>
 </body></html>

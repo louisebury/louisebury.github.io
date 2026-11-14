@@ -402,17 +402,43 @@
   color: color-mix(in srgb, var(--orange) 95%, transparent);
 }
 
-/* Emplacement de l'animation (l'iframe arrive en 4.4).
+/* Animations de wireframes (US4.4).
    Proportions de l'animation : 1200 × 692, + 44 px de barre Pause. */
 .bloc-animation {
   margin-top: 48px;
 }
 
+/* Le cadre devient un « conteneur » : ses enfants peuvent se dimensionner
+   d'après sa largeur, avec l'unité cqw (1 cqw = 1 % de cette largeur). */
 .bloc-animation__cadre {
+  container-type: inline-size;
+}
+
+.bloc-animation__iframe {
+  display: block;
+  width: 100%;
+  /* Secours pour les anciens navigateurs : proportions 1200 × 736 */
   aspect-ratio: 1200 / 736;
-  background: var(--fond);
-  border: 1.5px dashed color-mix(in srgb, var(--bleu) 70%, transparent);
+  /* Hauteur exacte : largeur × 692/1200, plus 44 px pour la barre Pause */
+  height: calc(100cqw * 692 / 1200 + 44px);
+  border: 0;
   border-radius: 12px;
+  background: var(--fond);
+}
+
+/* Lien « Voir en grand ↗ » : seulement sur petit écran (moins de 480 px) */
+.bloc-animation__agrandir {
+  display: none;
+}
+
+@media (max-width: 479.98px) {
+  .bloc-animation__agrandir {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--lavande);
+  }
 }
 
 /* Ma mission : 3 cartes numérotées */

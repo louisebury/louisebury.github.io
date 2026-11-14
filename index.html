@@ -247,10 +247,20 @@
           </ul>
           <p class="resultat">Résultat : le produit ne se vendait pas, et les équipes s'essoufflaient.</p>
 
-          <!-- Emplacement de l'animation « avant » : l'iframe arrive en Story 4.4 -->
+          <!-- Animation « avant » (US4.4) : lecture / pause selon la visibilité, voir main.js -->
           <div class="bloc-animation">
             <p class="surtitre surtitre--orange">L'ancien parcours, reconstitué</p>
-            <div class="bloc-animation__cadre"></div>
+            <div class="bloc-animation__cadre">
+              <iframe
+                class="bloc-animation__iframe"
+                src="/wireframes/wireframe-avant.html"
+                title="Animation : l'ancien parcours sur la Marketplace (reconstitution)"
+                loading="lazy"
+              ></iframe>
+              <a class="bloc-animation__agrandir" href="/wireframes/wireframe-avant.html" target="_blank" rel="noopener">
+                Voir en grand ↗<span class="visuellement-cache"> : l'ancien parcours sur la Marketplace (nouvel onglet)</span>
+              </a>
+            </div>
           </div>
 
           <h3 class="sous-titre">Ma mission</h3>
@@ -441,8 +451,18 @@
                   <li>Liste des lots épurée, statuts clairs</li>
                   <li>E-mail dès qu'un transporteur fait une offre</li>
                 </ul>
-                <!-- Emplacement de l'animation « parcours chargeur » : l'iframe arrive en Story 4.4 -->
-                <div class="bloc-animation__cadre bloc-animation__cadre--carte"></div>
+                <!-- Animation « parcours chargeur » (US4.4) -->
+                <div class="bloc-animation__cadre bloc-animation__cadre--carte">
+                  <iframe
+                    class="bloc-animation__iframe"
+                    src="/wireframes/wireframe-chargeur.html"
+                    title="Animation : parcours chargeur sur Connect"
+                    loading="lazy"
+                  ></iframe>
+                  <a class="bloc-animation__agrandir" href="/wireframes/wireframe-chargeur.html" target="_blank" rel="noopener">
+                    Voir en grand ↗<span class="visuellement-cache"> : parcours chargeur sur Connect (nouvel onglet)</span>
+                  </a>
+                </div>
               </div>
               <div class="carte carte--bleu carte--suite">
                 <p class="surtitre surtitre--carte">Transporteurs</p>
@@ -452,8 +472,18 @@
                   <li>Offre courte et suivi simplifié, pour négocier en direct</li>
                   <li>Recherches enregistrées : e-mail quand un nouveau lot correspond</li>
                 </ul>
-                <!-- Emplacement de l'animation « parcours transporteur » : l'iframe arrive en Story 4.4 -->
-                <div class="bloc-animation__cadre bloc-animation__cadre--carte"></div>
+                <!-- Animation « parcours transporteur » (US4.4) -->
+                <div class="bloc-animation__cadre bloc-animation__cadre--carte">
+                  <iframe
+                    class="bloc-animation__iframe"
+                    src="/wireframes/wireframe-transporteur.html"
+                    title="Animation : parcours transporteur sur Connect"
+                    loading="lazy"
+                  ></iframe>
+                  <a class="bloc-animation__agrandir" href="/wireframes/wireframe-transporteur.html" target="_blank" rel="noopener">
+                    Voir en grand ↗<span class="visuellement-cache"> : parcours transporteur sur Connect (nouvel onglet)</span>
+                  </a>
+                </div>
               </div>
               <div class="carte carte--violet carte--suite">
                 <p class="surtitre surtitre--carte">Équipes internes</p>
