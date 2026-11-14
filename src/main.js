@@ -5,8 +5,10 @@ import scene from './assets/scene-accueil.svg?raw'
 const decor = document.querySelector('#decor')
 decor.innerHTML = scene
 
-// Le décor est purement visuel : on le cache aux lecteurs d'écran
-decor.querySelector('svg').setAttribute('aria-hidden', 'true')
+// Le décor est visuel, mais il contient le vinyle Connect, focusable au clavier (US4.1).
+// On ne cache donc pas tout le SVG : on cache seulement ses textes décoratifs (noms d'albums).
+decor.querySelector('svg').setAttribute('focusable', 'false')
+decor.querySelectorAll('text').forEach((texte) => texte.setAttribute('aria-hidden', 'true'))
 
 /* ---------------------------------------------------------
    US2 : survol des vinyles et info-bulle
@@ -134,4 +136,119 @@ function cacherMain() {
 
 function relacherPression() {
   mainCurseur.classList.remove('main-curseur--pression')
+}
+
+/* ---------------------------------------------------------
+   US4.1 : ouvrir la page projet Connect, et en revenir
+   L'adresse décide de la vue affichée :
+   - …/#connect → la vue projet
+   - sinon      → l'accueil (la bibliothèque)
+   --------------------------------------------------------- */
+const vueProjet = document.querySelector('.vue-projet')
+const titreProjet = document.querySelector('#connect-titre')
+const boutonRetour = document.querySelector('.bouton-retour')
+const vinyleConnect = decor.querySelector('#vinyle-connect')
+
+const DUREE_FONDU = 250 // en millisecondes, identique à la transition du style.css
+const reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)')
+let vueActuelle = 'accueil' // au chargement, c'est l'accueil qui est visible
+let minuteurFondu = null
+
+// 1. Le vinyle Connect devient un lien utilisable au clavier
+if (vinyleConnect) {
+  vinyleConnect.setAttribute('tabindex', '0') // Tab peut s'y arrêter
+  vinyleConnect.setAttribute('role', 'link') // annoncé comme un lien par les lecteurs d'écran
+  vinyleConnect.setAttribute('aria-label', vinyleConnect.dataset.titre) // … avec son titre
+
+  vinyleConnect.addEventListener('click', ouvrirProjet)
+  vinyleConnect.addEventListener('keydown', (evenement) => {
+    if (evenement.key === 'Enter') ouvrirProjet()
+  })
+
+  // Au clavier, l'info-bulle s'affiche aussi (pas lors d'un focus donné par la souris)
+  vinyleConnect.addEventListener('focus', () => {
+    if (vinyleConnect.matches(':focus-visible')) {
+      afficherInfoBulle(vinyleConnect, vinyleConnect.style.getPropertyValue('--couleur-vinyle'))
+    }
+  })
+  vinyleConnect.addEventListener('blur', masquerInfoBulle)
+}
+
+function ouvrirProjet() {
+  // pushState change l'adresse et crée une entrée dans l'historique (le retour navigateur marche).
+  // On y note qu'on vient de l'accueil : le bouton « ← Bibliothèque » s'en servira.
+  history.pushState({ depuisAccueil: true }, '', '#connect')
+  afficherVue()
+}
+
+// 2. Bouton « ← Bibliothèque »
+boutonRetour.addEventListener('click', () => {
+  if (history.state && history.state.depuisAccueil) {
+    // On vient de l'accueil : on recule d'un pas, exactement comme le bouton retour du navigateur
+    history.back()
+  } else {
+    // On est arrivé directement sur …/#connect : on retire le #connect de l'adresse
+    history.pushState(null, '', location.pathname + location.search)
+    afficherVue()
+  }
+})
+
+// 3. Bouton retour / suivant du navigateur, ou adresse modifiée à la main
+window.addEventListener('popstate', afficherVue)
+window.addEventListener('hashchange', afficherVue)
+
+// 4. Au chargement : si l'adresse est déjà …/#connect, on affiche le projet tout de suite
+afficherVue({ instantane: true })
+
+function afficherVue({ instantane = false } = {}) {
+  const vueVoulue = location.hash === '#connect' ? 'projet' : 'accueil'
+  if (vueVoulue === vueActuelle) return // déjà la bonne vue : rien à faire
+  vueActuelle = vueVoulue
+
+  const versProjet = vueVoulue === 'projet'
+  const depart = versProjet ? sceneEl : vueProjet
+  const arrivee = versProjet ? vueProjet : sceneEl
+
+  // En quittant l'accueil, on range la main-curseur et l'info-bulle :
+  // au retour, la bibliothèque est propre et la main revient dès que la souris bouge.
+  if (versProjet) {
+    cacherMain()
+    masquerInfoBulle()
+  }
+
+  basculer(depart, arrivee, instantane, () => {
+    // La page projet peut défiler, l'accueil non (voir .mode-projet dans style.css)
+    document.documentElement.classList.toggle('mode-projet', versProjet)
+    window.scrollTo(0, 0) // la vue s'ouvre toujours en haut
+
+    if (instantane) return // ouverture directe : on ne déplace pas le focus
+    // Focus : sur le titre du projet à l'ouverture, sur le vinyle Connect au retour
+    const cible = versProjet ? titreProjet : vinyleConnect
+    if (cible) cible.focus({ preventScroll: true })
+  })
+}
+
+// Fondu : la vue de départ s'efface, puis la vue d'arrivée apparaît.
+// « ensuite » est appelé au moment où la vue d'arrivée devient visible.
+function basculer(depart, arrivee, instantane, ensuite) {
+  clearTimeout(minuteurFondu) // si on change d'avis en plein fondu
+
+  if (instantane || reduireAnimations.matches) {
+    depart.hidden = true
+    depart.classList.remove('vue--effacee')
+    arrivee.classList.remove('vue--effacee')
+    arrivee.hidden = false
+    ensuite()
+    return
+  }
+
+  depart.classList.add('vue--effacee') // opacité 0, avec transition (style.css)
+  minuteurFondu = setTimeout(() => {
+    depart.hidden = true
+    arrivee.classList.add('vue--effacee') // part de l'opacité 0…
+    arrivee.hidden = false
+    ensuite()
+    void arrivee.offsetWidth // force le navigateur à « voir » l'opacité 0 avant de la changer
+    arrivee.classList.remove('vue--effacee') // … et remonte à 1 en fondu
+  }, DUREE_FONDU)
 }

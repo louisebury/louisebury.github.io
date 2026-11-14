@@ -45,6 +45,18 @@
       </button>
     </main>
 
+    <!-- US4.1 : vue projet. Un seul <main> visible à la fois : l'autre porte « hidden ».
+         src/main.js affiche cette vue quand l'adresse se termine par #connect. -->
+    <main class="vue-projet" hidden>
+      <button class="bouton-retour" type="button">← Bibliothèque</button>
+
+      <section class="projet" id="connect" aria-labelledby="connect-titre">
+        <!-- tabindex="-1" : le titre peut recevoir le focus par JavaScript (pas avec Tab) -->
+        <h1 class="projet__titre" id="connect-titre" tabindex="-1">Lancement du produit Connect</h1>
+        <p class="projet__provisoire">Le contenu de ce projet arrive bientôt.</p>
+      </section>
+    </main>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
