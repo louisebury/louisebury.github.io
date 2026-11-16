@@ -2,6 +2,7 @@ import './style.css'
 import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
 import { activerEffetsDefilement } from './effets-defilement.js' // US4.5
+import { preparerFondVinyle, demarrerFondVinyle, arreterFondVinyle } from './fond-vinyle.js' // Story 7.3
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS
 const decor = document.querySelector('#decor')
@@ -157,6 +158,10 @@ const reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)')
 let vueActuelle = 'accueil' // au chargement, c'est l'accueil qui est visible
 let minuteurFondu = null
 
+// Story 7.3 : le disque en fond de la page projet prend la couleur du vinyle Connect
+// (posée plus haut sur le vinyle, dans la variable --couleur-vinyle)
+preparerFondVinyle(vinyleConnect ? vinyleConnect.style.getPropertyValue('--couleur-vinyle') : null)
+
 // 1. Le vinyle Connect devient un lien utilisable au clavier
 if (vinyleConnect) {
   vinyleConnect.setAttribute('tabindex', '0') // Tab peut s'y arrêter
@@ -227,6 +232,9 @@ function afficherVue({ instantane = false } = {}) {
     window.scrollTo(0, 0) // la vue s'ouvre toujours en haut
     // US4.5 : la vue projet est maintenant affichée et mesurable : on lance (ou recalcule) les effets
     if (versProjet) activerEffetsDefilement()
+    // Story 7.3 : le disque tourne seulement quand la page projet est visible
+    if (versProjet) demarrerFondVinyle()
+    else arreterFondVinyle()
 
     if (instantane) return // ouverture directe : on ne déplace pas le focus
     // Focus : sur le titre du projet à l'ouverture, sur le vinyle Connect au retour

@@ -7,29 +7,27 @@
 
 /* =========================================================
    1. Mise en page
-   Ordinateur : 2 colonnes. Celle de gauche reste vide (le vinyle
-   arrive en 8.1), le contenu tient dans 740 px à droite.
+   Ordinateur (story 7.3) : une seule colonne de 740 px maximum,
+   qui commence à 30 % de la largeur de l'écran et passe par-dessus
+   le disque en fond (section 9).
    ========================================================= */
 .vue-projet {
   display: grid;
-  /* minmax(0, …) : une colonne peut rétrécir sous la largeur de son contenu (évite les débordements) */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 740px);
-  max-width: 1440px;
-  margin: 0 auto;
-  /* 84 px en haut = la barre fixe (72 px) + 12 px d'air au-dessus du sommaire */
-  padding: 84px 60px 120px 40px;
+  /* minmax(0, …) : la colonne peut rétrécir sous la largeur de son contenu (évite les débordements) */
+  grid-template-columns: minmax(0, 740px);
+  /* 84 px en haut = la barre fixe (72 px) + 12 px d'air au-dessus du sommaire.
+     30vw à gauche : le disque se cale sur l'écran, le contenu aussi. */
+  padding: 84px 60px 120px 30vw;
   font-family: var(--police-texte);
+  /* Crée une « couche » propre à la vue : le fond en z-index négatif reste
+     derrière le contenu, mais devant le fond de la page, même pendant le fondu. */
+  isolation: isolate;
 }
 
 /* « display: grid » ci-dessus l'emporterait sur l'attribut hidden :
    on redit explicitement qu'une vue cachée ne s'affiche pas. */
 .vue-projet[hidden] {
   display: none;
-}
-
-/* Tout le contenu se range dans la colonne de droite */
-.vue-projet > * {
-  grid-column: 2;
 }
 
 /* Bouton « ← Bibliothèque » (provisoire : il rejoindra la barre du haut en 4.3) */
@@ -1084,10 +1082,6 @@
     padding: 68px 16px 80px; /* barre fixe de 60 px + 8 px */
   }
 
-  .vue-projet > * {
-    grid-column: 1;
-  }
-
   .projet__entete {
     padding-top: 32px;
   }
@@ -1586,5 +1580,97 @@ html.effets-defilement .indicateur + .indicateur .barre::before {
   .carte-question,
   html.effets-defilement .barre::before {
     transition: none;
+  }
+}
+
+/* =========================================================
+   9. Story 7.3 : le disque en fond de la page projet
+   Valeurs relevées sur la maquette page-projet-vinyle.svg (écran 1440 × 900) :
+   centre du disque à 4 % de la largeur et à mi-hauteur, rayon = 0,42 × la largeur.
+   ========================================================= */
+
+/* Le conteneur : fixé sur tout l'écran, derrière le contenu (z-index négatif,
+   possible grâce à « isolation: isolate » sur .vue-projet). Il ne capte aucun clic. */
+.fond-vinyle {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden; /* la moitié gauche du disque sort de l'écran : on la coupe */
+  pointer-events: none;
+  /* Secours : la couleur d'accent de la page. main.js y recopie la couleur du vinyle. */
+  --couleur-vinyle: var(--accent);
+}
+
+/* Les 3 couches se superposent exactement, dans l'ordre du HTML */
+.fond-vinyle > * {
+  position: absolute;
+}
+
+/* Couche 1 : le disque. Un carré de 84vw (diamètre = 2 × 0,42 × la largeur),
+   dont le centre est placé à 4vw du bord gauche et à mi-hauteur. */
+.fond-vinyle__disque {
+  left: calc(4vw - 42vw);
+  top: calc(50% - 42vw);
+  width: 84vw;
+  height: 84vw;
+  opacity: 0.6;
+}
+
+.fond-vinyle__disque svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Couche 2 : la main du scratch (story 7.4). Vide pour l'instant. */
+.fond-vinyle__main {
+  inset: 0;
+}
+
+/* Couche 3 : le fondu noir, deux dégradés superposés (recopiés de la maquette).
+   - de haut en bas : assombrit le haut et le bas, transparent au milieu ;
+   - de gauche à droite : léger sur le bord gauche, presque opaque à partir du milieu.
+   Le dégradé de la maquette commence avant le bord de l'écran, d'où la position négative. */
+.fond-vinyle__fondu {
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(11 11 18 / 0.6) 0%,
+      rgb(11 11 18 / 0) 25%,
+      rgb(11 11 18 / 0) 80%,
+      rgb(11 11 18 / 0.7) 100%
+    ),
+    linear-gradient(
+      to right,
+      rgb(11 11 18 / 0.15) -20.8%,
+      rgb(11 11 18 / 0.35) 5.8%,
+      rgb(11 11 18 / 0.85) 29.9%,
+      rgb(11 11 18 / 0.97) 51.7%
+    );
+}
+
+/* Sous 768 px : un disque plus petit, centré, encore plus atténué,
+   et un fondu uniforme. Le contenu reprend toute la largeur (section 7). */
+@media (max-width: 767px) {
+  .fond-vinyle__disque {
+    left: 5vw;
+    top: calc(50% - 45vw);
+    width: 90vw;
+    height: 90vw;
+    opacity: 0.3;
+  }
+
+  .fond-vinyle__fondu {
+    background: rgb(11 11 18 / 0.6);
+  }
+}
+
+/* Écrans moyens (tablette, petit portable) : avec 30vw de décalage, la colonne serait
+   trop étroite (le bloc « Indicateurs » déborderait). On réduit le décalage à 15vw :
+   le contenu chevauche toujours le disque, un peu plus à gauche. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .vue-projet {
+    padding-left: 15vw;
   }
 }

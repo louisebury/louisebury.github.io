@@ -48,6 +48,14 @@
     <!-- US4.1 : vue projet. Un seul <main> visible à la fois : l'autre porte « hidden ».
          src/main.js affiche cette vue quand l'adresse se termine par #connect. -->
     <main class="vue-projet" hidden>
+      <!-- Story 7.3 : le disque en fond, fixe derrière le contenu. Purement décoratif (aria-hidden).
+           3 couches, du fond vers l'avant : le disque, la main (vide, remplie en 7.4), le fondu noir. -->
+      <div class="fond-vinyle" aria-hidden="true">
+        <div class="fond-vinyle__disque"></div>
+        <div class="fond-vinyle__main"></div>
+        <div class="fond-vinyle__fondu"></div>
+      </div>
+
       <!-- US4.3 : barre du haut, fixée en haut de l'écran. Elle est dans la vue projet : elle se cache avec elle. -->
       <header class="barre-haut">
         <p class="barre-haut__nom titre-neon">Louise Bury</p>
