@@ -170,6 +170,15 @@ export function calerRotationFondVinyle(angle) {
   rotation.totalTime(DUREE_TOUR * (1000 + fraction))
 }
 
+/**
+ * Story 7.7 : l'angle actuel de l'étiquette du disque de fond (en degrés, entre 0 et 360, sens horaire).
+ * L'animation de retour part de cet angle : la rotation continue sans à-coup.
+ * progress() = où en est le tour en cours (entre 0 et 1).
+ */
+export function lireRotationFondVinyle() {
+  return rotation ? rotation.progress() * 360 : 0
+}
+
 // Appelée par main.js quand la page projet s'affiche
 export function demarrerFondVinyle() {
   if (rotation && !reduireAnimations.matches) rotation.play()

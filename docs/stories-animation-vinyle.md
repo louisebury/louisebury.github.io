@@ -194,6 +194,22 @@ Une story = une session Claude Code en plan mode, puis `/clear`. On ne passe à 
 - Le bouton « Passer » (néon lavande, en bas à droite) est visible pendant l'animation et reçoit le focus. On passe l'animation avec ce bouton (clic ou Entrée), avec Échap, ou par un clic n'importe où. La page projet s'affiche alors par un simple fondu, avec le disque de fond qui tourne.
 - Sous 768 px, pas d'animation : simple fondu.
 
+**Partie 2 : livré**
+- **« ← Bibliothèque » joue le retour, environ 2,45 s.** Les durées `DUREE_RETOUR_…` sont en haut de `src/animation/lancement.js`.
+  - **R1 :** le contenu s'efface, la vue de dessus revient et le disque rétrécit jusqu'au plateau. Le disque garde l'angle du disque de fond.
+  - **R2 :** la main droite ramène le bras au repos, le bouton 33 s'éteint et le disque s'arrête.
+  - **R3 :** les deux mains soulèvent le disque, puis la vue de face revient.
+  - **R4 :** le disque rentre dans la pochette, tenue par la main gauche.
+  - **R5 :** la pochette redevient la tranche, poussée dans le casier, et la caméra recule jusqu'à l'accueil.
+- **L'aller et le retour partagent la préparation des éléments** (`preparerScene` dans `lancement.js`). Chacun a sa propre timeline.
+- **Un clic pendant le retour** (bouton « Passer », Échap ou clic n'importe où) affiche directement la bibliothèque, vinyle rangé. Le focus revient sur le vinyle.
+- **Retour en remontant au-delà du haut.** Les réglages sont en haut de `src/main.js` :
+  - `RETOUR_PAR_DEFILEMENT` : l'interrupteur ;
+  - `ATTENTE_EN_HAUT` : 0,5 s ;
+  - `SEUIL_REMONTEE` : 300 px.
+
+  Le cumul repart de zéro après 0,4 s sans molette (`PAUSE_REMISE_A_ZERO`). Ce déclenchement écoute la molette et le pavé tactile, pas les écrans tactiles.
+
 ---
 
 ## Message type pour Claude Code (plan mode)

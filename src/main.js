@@ -3,7 +3,13 @@ import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
 import { activerEffetsDefilement } from './effets-defilement.js' // US4.5
 import { preparerFondVinyle, demarrerFondVinyle, arreterFondVinyle, signalerWireframeVisible } from './fond-vinyle.js' // Stories 7.3 et 7.4
-import { lancementPossible, lancementEnCours, jouerLancement, reinitialiserLancement, passerAnimation } from './animation/lancement.js' // Stories 7.5 et 7.7
+import { lancementPossible, lancementEnCours, jouerLancement, jouerRetour, reinitialiserLancement, passerAnimation } from './animation/lancement.js' // Stories 7.5 et 7.7
+
+/* ---------- Story 7.7 : réglages du retour en remontant au-delà du haut de la page projet ---------- */
+const RETOUR_PAR_DEFILEMENT = true // false = ce déclenchement est coupé (« ← Bibliothèque » marche toujours)
+const ATTENTE_EN_HAUT = 0.5 // secondes : la page doit être restée tout en haut depuis ce temps avant qu'on compte
+const SEUIL_REMONTEE = 300 // pixels de molette vers le haut, cumulés, pour déclencher le retour
+const PAUSE_REMISE_A_ZERO = 0.4 // secondes sans molette : le cumul repart de zéro (un geste = un essai)
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS
 const decor = document.querySelector('#decor')
@@ -161,6 +167,11 @@ const DUREE_APPARITION_CONTENU = 300
 const reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)')
 let vueActuelle = 'accueil' // au chargement, c'est l'accueil qui est visible
 let minuteurFondu = null
+let retourJoue = false // story 7.7 : vrai juste après l'animation de retour (lu par afficherVue)
+// Story 7.7 : retour en remontant au-delà du haut (voir surveillerRemontee)
+let enHautDepuis = null // moment où la page est arrivée tout en haut (null = elle n'y est pas)
+let cumulRemontee = 0 // pixels de molette vers le haut, cumulés depuis le début du geste
+let derniereMolette = 0 // moment du dernier mouvement de molette
 
 // Story 7.3 : le disque en fond de la page projet prend la couleur du vinyle Connect
 // (posée plus haut sur le vinyle, dans la variable --couleur-vinyle)
@@ -255,10 +266,87 @@ function passerAuClavier(evenement) {
 // deux fois, mais la seconde ne fait rien (il n'y a plus d'animation en cours).
 boutonPasser.addEventListener('click', passerAnimation)
 
+/* ---------------------------------------------------------
+   Story 7.7 : retour à la bibliothèque en remontant au-delà du haut de la page projet.
+   Il n'existe pas d'événement « remonter plus haut que le haut » : on écoute la molette
+   (et le pavé tactile, qui envoie les mêmes événements) quand la page est déjà tout en haut.
+   Deux garde-fous, réglables en haut du fichier :
+   - la page doit être restée en haut depuis ATTENTE_EN_HAUT secondes (l'élan d'un défilement
+     rapide vers le haut ne compte pas) ;
+   - les mouvements vers le haut, cumulés, doivent dépasser SEUIL_REMONTEE pixels.
+   --------------------------------------------------------- */
+if (RETOUR_PAR_DEFILEMENT) {
+  // passive: true = on ne bloque jamais le défilement : il reste fluide
+  window.addEventListener('scroll', suivreHautDePage, { passive: true })
+  window.addEventListener('wheel', surveillerRemontee, { passive: true })
+}
+
+// Note le moment où la page arrive tout en haut, et oublie tout dès qu'elle en repart
+function suivreHautDePage() {
+  if (window.scrollY > 0) {
+    enHautDepuis = null
+    cumulRemontee = 0
+  } else if (enHautDepuis === null) {
+    enHautDepuis = performance.now()
+  }
+}
+
+function surveillerRemontee(evenement) {
+  if (vueActuelle !== 'projet' || lancementEnCours()) return
+  if (window.scrollY > 0) return suivreHautDePage() // pas encore en haut
+
+  const maintenant = performance.now() // en millisecondes
+  if (enHautDepuis === null) enHautDepuis = maintenant
+  const pause = maintenant - derniereMolette
+  derniereMolette = maintenant
+
+  // 1er garde-fou : la page n'est pas en haut depuis assez longtemps, on ne compte pas encore
+  if (maintenant - enHautDepuis < ATTENTE_EN_HAUT * 1000) {
+    cumulRemontee = 0
+    return
+  }
+  // Un nouveau geste (après une pause) ou un mouvement vers le bas : on repart de zéro
+  if (pause > PAUSE_REMISE_A_ZERO * 1000) cumulRemontee = 0
+  if (evenement.deltaY >= 0) {
+    cumulRemontee = 0
+    return
+  }
+  // deltaY négatif = vers le haut. Certaines souris comptent en lignes (deltaMode 1) : 1 ligne ≈ 16 px
+  cumulRemontee += evenement.deltaMode === 1 ? -evenement.deltaY * 16 : -evenement.deltaY
+
+  // 2e garde-fou : le seuil est dépassé, on revient à la bibliothèque
+  if (cumulRemontee >= SEUIL_REMONTEE) {
+    cumulRemontee = 0
+    enHautDepuis = null
+    revenirALaBibliotheque()
+  }
+}
+
 // 2. Boutons « ← Bibliothèque » : forEach pose le même écouteur sur chacun
 boutonsRetour.forEach((bouton) => bouton.addEventListener('click', revenirALaBibliotheque))
 
-function revenirALaBibliotheque() {
+async function revenirALaBibliotheque() {
+  if (lancementEnCours()) return // une animation est déjà en cours
+
+  // Story 7.7 : l'animation de retour se joue d'abord (sauf « réduire les animations » et sous 768 px).
+  // Le bouton retour du navigateur, lui, ne passe pas par ici : il garde le simple fondu.
+  if (vueActuelle === 'projet' && lancementPossible()) {
+    fermerMenuProjets()
+    const svgScene = decor.querySelector('svg')
+    sceneEl.classList.add('scene--lancement') // textes de l'accueil cachés, souris bloquée sur la scène
+    activerPasser()
+    await jouerRetour(svgScene, vinyleConnect, {
+      effacerContenu: effacerContenuProjet,
+      montrerScene: montrerSceneSansFondu,
+    })
+    desactiverPasser()
+    // Que le retour soit fini ou passé : la scène est affichée, propre, vinyle rangé
+    montrerSceneSansFondu() // utile si le retour a été passé avant la bascule (sinon sans effet)
+    reinitialiserLancement(svgScene)
+    sceneEl.classList.remove('scene--lancement')
+    retourJoue = true // afficherVue n'a plus de fondu à faire, seulement le focus
+  }
+
   if (history.state && history.state.depuisAccueil) {
     // On vient de l'accueil : on recule d'un pas, exactement comme le bouton retour du navigateur
     history.back()
@@ -269,6 +357,26 @@ function revenirALaBibliotheque() {
   }
 }
 
+// Story 7.7 : appelées par l'animation de retour.
+// R1 : le contenu de la page projet s'efface (le disque de fond reste) : l'inverse de son apparition (projet.css)
+function effacerContenuProjet() {
+  vueProjet.classList.add('vue-projet--apparition') // transition prête
+  void vueProjet.offsetWidth // force le navigateur à « voir » l'opacité 1 avant de la changer
+  vueProjet.classList.add('vue-projet--arrivee') // … le contenu descend à 0 en fondu
+}
+
+// R1 : la page projet laisse sa place à la scène, d'un coup (l'animation prend le relais).
+// On peut l'appeler plusieurs fois : la deuxième ne change rien.
+function montrerSceneSansFondu() {
+  vueProjet.hidden = true
+  vueProjet.classList.remove('vue-projet--arrivee', 'vue-projet--apparition')
+  sceneEl.classList.remove('vue--effacee')
+  sceneEl.hidden = false
+  document.documentElement.classList.remove('mode-projet') // l'accueil ne défile pas
+  window.scrollTo(0, 0)
+  arreterFondVinyle()
+}
+
 // 3. Bouton retour / suivant du navigateur, ou adresse modifiée à la main
 window.addEventListener('popstate', afficherVue)
 window.addEventListener('hashchange', afficherVue)
@@ -277,6 +385,10 @@ window.addEventListener('hashchange', afficherVue)
 afficherVue({ instantane: true })
 
 function afficherVue({ instantane = false, apresLancement = false } = {}) {
+  // Story 7.7 : après l'animation de retour, la scène est déjà affichée : pas de fondu.
+  // (afficherVue est souvent appelée par l'événement popstate : on passe donc par une variable)
+  const apresRetour = retourJoue
+  retourJoue = false
   const vueVoulue = location.hash === '#connect' ? 'projet' : 'accueil'
   if (vueVoulue === vueActuelle) return // déjà la bonne vue : rien à faire
   vueActuelle = vueVoulue
@@ -292,7 +404,7 @@ function afficherVue({ instantane = false, apresLancement = false } = {}) {
     masquerInfoBulle()
   }
 
-  basculer(depart, arrivee, instantane, apresLancement, () => {
+  basculer(depart, arrivee, instantane, apresLancement, apresRetour, () => {
     // La page projet peut défiler, l'accueil non (voir .mode-projet dans style.css)
     document.documentElement.classList.toggle('mode-projet', versProjet)
     window.scrollTo(0, 0) // la vue s'ouvre toujours en haut
@@ -302,6 +414,9 @@ function afficherVue({ instantane = false, apresLancement = false } = {}) {
     // (story 7.4 : le scratch au défilement démarre et s'arrête avec lui)
     if (versProjet) demarrerFondVinyle()
     else arreterFondVinyle()
+    // Story 7.7 : la page projet s'ouvre tout en haut : le délai ATTENTE_EN_HAUT part de maintenant
+    enHautDepuis = versProjet ? performance.now() : null
+    cumulRemontee = 0
 
     // Story 7.5 : la scène est maintenant cachée : on la remet dans son état d'accueil
     // (caméra au large, textes visibles), pour un retour à la bibliothèque propre
@@ -319,7 +434,7 @@ function afficherVue({ instantane = false, apresLancement = false } = {}) {
 
 // Fondu : la vue de départ s'efface, puis la vue d'arrivée apparaît.
 // « ensuite » est appelé au moment où la vue d'arrivée devient visible.
-function basculer(depart, arrivee, instantane, apresLancement, ensuite) {
+function basculer(depart, arrivee, instantane, apresLancement, apresRetour, ensuite) {
   clearTimeout(minuteurFondu) // si on change d'avis en plein fondu
 
   // Story 7.6 : fin de l'animation de lancement. Le disque de l'animation est exactement à la place
@@ -337,7 +452,8 @@ function basculer(depart, arrivee, instantane, apresLancement, ensuite) {
     return
   }
 
-  if (instantane || reduireAnimations.matches) {
+  // Story 7.7 : après l'animation de retour, la scène est déjà là : on échange simplement les vues
+  if (instantane || apresRetour || reduireAnimations.matches) {
     depart.hidden = true
     depart.classList.remove('vue--effacee')
     arrivee.classList.remove('vue--effacee')

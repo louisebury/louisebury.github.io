@@ -17,11 +17,19 @@
    Palier 4 : le disque grossit et glisse jusqu'à la place mesurée du disque de fond (fond-vinyle.js),
               le décor s'efface ; main.js échange alors la scène contre la page projet, sans fondu,
               et le contenu apparaît (voir afficherVue et .vue-projet--arrivee).
+
+   Story 7.7 : passer l'animation (passerAnimation) et animation de retour (jouerRetour), storyboard R1 à R5.
+   Le retour a sa propre timeline ; il réutilise les éléments, les poses et les cadres de l'aller (preparerScene).
+   R1 : le contenu s'efface ; on rebascule sur la scène, en vue de dessus, et le disque rétrécit jusqu'au plateau.
+   R2 : la main droite ramène le bras au repos, le bouton 33 s'éteint, le disque s'arrête.
+   R3 : les deux mains soulèvent le disque, puis on revient en vue de face.
+   R4 : le disque rentre dans sa pochette, tenue par la main gauche.
+   R5 : la pochette redevient la tranche, poussée dans le casier ; la caméra recule jusqu'à l'accueil.
    --------------------------------------------------------- */
 import { gsap } from 'gsap'
 import { insererElement } from './elements.js'
 import { appliquerPose, melangerPoses } from './main-articulee.js'
-import { mesurerDisqueDeFond, calerRotationFondVinyle } from '../fond-vinyle.js'
+import { mesurerDisqueDeFond, calerRotationFondVinyle, lireRotationFondVinyle } from '../fond-vinyle.js'
 
 /* ---------- Réglages : modifiez ces valeurs pour changer le rythme ---------- */
 // Durées en secondes (storyboard : 0 → 0,4 s, 0,4 → 0,9 s, 0,9 → 1,2 s)
@@ -37,6 +45,14 @@ const DUREE_MAINS = 0.4 // image 8 → 9 : les mains sortent par le bas
 const CHEVAUCHEMENT_MAINS = 0.2 // les mains commencent à sortir 0,2 s avant la fin de l'étape « 33 »
 const DUREE_ARRIVEE = 0.7 // image 9 → 10 : le disque grossit et glisse à sa place de fond
 // Ensuite, le contenu de la page projet apparaît en 0,3 s : DUREE_APPARITION_CONTENU dans main.js
+// Story 7.7 : le retour (storyboard R1 à R5), même rythme que l'aller, environ 2,5 s maximum (total actuel : 2,45 s)
+const DUREE_RETOUR_EFFACEMENT = 0.3 // R1 : le contenu s'efface (même durée que .vue-projet--apparition dans projet.css)
+const DUREE_RETOUR_PLATINE = 0.35 // R1 : le décor revient, le disque rétrécit jusqu'au plateau
+const DUREE_RETOUR_BRAS = 0.35 // R2 : la main droite ramène le bras au repos, le disque s'arrête
+const DUREE_RETOUR_SOULEVER = 0.35 // R3 : les deux mains prennent le disque et le soulèvent
+const DUREE_RETOUR_RACCORD = 0.2 // R3 : bascule de la vue de dessus vers la vue de face
+const DUREE_RETOUR_RENTRER = 0.4 // R4 : le disque rentre dans sa pochette
+const DUREE_RETOUR_RANGER = 0.5 // R5 : la pochette redevient la tranche, poussée dans le casier ; la caméra recule
 const RALENTI = 1 // 1 = vitesse normale ; 0.25 = 4 fois plus lent (pratique pour observer)
 
 // Cadres de la caméra = le viewBox du SVG de la scène : [x, y, largeur, hauteur]
@@ -141,6 +157,14 @@ const IMAGE_9 = {
   mainDroite: { x: 1017.3, y: 729.7, echelle: 0.7, angle: 20 },
 }
 const DESCENTE_MAINS = 250 // les mains finissent 250 unités (vue de dessus) plus bas que l'image 9 : hors du cadre
+// Le disque posé sur le plateau (image 6), en coordonnées de la scène
+const DISQUE_POSE = {
+  cx: versSceneX(IMAGE_6.disque.cx),
+  cy: versSceneY(IMAGE_6.disque.cy),
+  rayon: IMAGE_6.disque.rayon * K_DESSUS,
+}
+// Une main de l'image 9, descendue hors du cadre et effacée (fin de l'aller, début du retour)
+const mainHorsCadre = (image) => ({ ...mainVersScene({ ...image, y: image.y + DESCENTE_MAINS }), opacite: 0 })
 
 const reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)')
 const ecranLarge = window.matchMedia('(min-width: 768px)') // story 7.7 : sous 768 px, pas d'animation
@@ -225,6 +249,227 @@ function copierTranche(vinyle) {
 }
 
 /**
+ * Prépare tout ce que les animations ajoutent à la scène (aller et retour) :
+ * mains, disque, tranche, pochette, vue de dessus, bras, bouton 33, ombre, voile.
+ * Renvoie les éléments, les nombres que GSAP anime et les fonctions qui les recopient dans le dessin.
+ * - svgScene : le <svg> du décor de l'accueil
+ * - vinyle : le groupe .vinyle-cliquable (sa tranche donne la position et la couleur)
+ */
+function preparerScene(svgScene, vinyle) {
+  /* ====== 1. Préparer les éléments ====== */
+  calque = creer('g', { id: 'calque-lancement', 'aria-hidden': 'true', 'pointer-events': 'none' })
+  // La couleur du vinyle cliqué : pochette et étiquette du disque la lisent dans --couleur-vinyle
+  calque.style.setProperty('--couleur-vinyle', vinyle.style.getPropertyValue('--couleur-vinyle'))
+  svgScene.append(calque) // en dernier dans la scène : par-dessus le décor
+
+  // La tranche d'origine : son rectangle plein donne la position et la taille
+  const plein = vinyle.querySelector('rect:not([fill-opacity])')
+  const tx = Number(plein.getAttribute('x'))
+  const ty = Number(plein.getAttribute('y'))
+  const tl = Number(plein.getAttribute('width'))
+  const th = Number(plein.getAttribute('height'))
+
+  const trou = creer('rect', { x: tx, y: ty, width: tl, height: th, fill: '#0B0814' }) // couleur du storyboard
+  const mainGauche = creerMainEnDeuxCouches('main-gauche')
+  const mainDroite = creerMainEnDeuxCouches('main-droite')
+  const disque = creerElementMobile('disque', 'disque-lancement')
+  const tranche = copierTranche(vinyle)
+  const pochette = creerElementMobile('pochette', 'pochette-lancement')
+
+  // Story 7.6 : la vue de dessus, cachée jusqu'au raccord.
+  // On ne déplace pas la caméra (le décor de la bibliothèque sauterait pendant le fondu) :
+  // c'est la vue de dessus qu'on place pour que son cadre remplisse exactement le cadre actuel.
+  // translate(-80 -40) amène le coin du cadre en (0, 0), scale le réduit, translate(575 330) le pose.
+  const placementDessus = `translate(${CADRE_DEMI_TOUR[0]} ${CADRE_DEMI_TOUR[1]}) scale(${K_DESSUS}) translate(${-CADRE_DESSUS[0]} ${-CADRE_DESSUS[1]})`
+  const vueDessus = creer('g', { transform: placementDessus, opacity: 0 })
+  calque.append(vueDessus)
+  insererElement('vue-dessus', vueDessus, 'vue-dessus')
+
+  // Le bras de lecture doit passer AU-DESSUS du disque posé : on le sort de la vue de dessus
+  // et on le met dans son propre calque, placé de la même façon.
+  const calqueBras = creer('g', { transform: placementDessus, opacity: 0 })
+  calqueBras.append(vueDessus.querySelector('#vue-dessus-bras-platine-place'))
+  const bras = calqueBras.querySelector('#vue-dessus-bras-platine')
+
+  // Le bouton « 33 » (1er rectangle du sélecteur) et son halo, ajouté dans la platine, éteint au départ
+  const bouton33 = vueDessus.querySelector('#vue-dessus-selecteur-rpm rect')
+  const haloBouton = creer('circle', {
+    cx: BOUTON_33.cx,
+    cy: BOUTON_33.cy,
+    r: BOUTON_33.halo,
+    fill: 'none',
+    stroke: COULEUR_BOUTON,
+    'stroke-width': 2.4,
+    opacity: 0,
+  })
+  vueDessus.querySelector('#vue-dessus-platine-dessus').append(haloBouton)
+
+  // L'ombre du disque : un cercle noir flouté (le flou est un « filtre » SVG, défini une fois dans <defs>)
+  const defs = creer('defs')
+  const filtre = creer('filter', { id: 'flou-ombre-lancement', x: '-30%', y: '-30%', width: '160%', height: '160%' })
+  filtre.append(creer('feGaussianBlur', { stdDeviation: FLOU_OMBRE * K_DESSUS }))
+  defs.append(filtre)
+  const ombre = creer('circle', { fill: '#000', filter: 'url(#flou-ombre-lancement)', opacity: 0 })
+
+  // Palier 4 : un voile de la couleur du fond de la page, très grand (il déborde de tous les côtés),
+  // qui recouvre peu à peu le décor. À la fin, seul le disque reste visible, comme sur la page projet.
+  const voile = creer('rect', { x: -20000, y: -20000, width: 40000, height: 40000, opacity: 0 })
+  voile.style.fill = 'var(--fond, #0B0B12)'
+
+  // Ordre d'empilement, du fond vers l'avant :
+  // trou, vue de dessus, ombre, voile, doigts des deux mains, disque, bras de lecture, tranche et pochette, pouces des deux mains.
+  // Les doigts passent donc derrière la pochette et le disque, les pouces devant.
+  // La vue de dessus est sous les mains et le disque : ils restent visibles pendant le raccord.
+  calque.append(defs, trou, vueDessus, ombre, voile, mainGauche.dos, mainDroite.dos, disque, calqueBras, tranche, pochette, mainGauche.pouce, mainDroite.pouce)
+
+  // Le vrai vinyle est caché : c'est la copie qui bouge (il est réaffiché à la remise à zéro)
+  vinyleCache = vinyle
+  vinyle.style.visibility = 'hidden'
+
+  /* ====== 2. Ce que GSAP anime : de simples nombres, recopiés dans le dessin à chaque image ====== */
+  // La caméra
+  const camera = enObjet(CADRE_ACCUEIL)
+  const dessinerCamera = () =>
+    svgScene.setAttribute('viewBox', `${camera.x} ${camera.y} ${camera.largeur} ${camera.hauteur}`)
+
+  // La « boîte » de la tranche puis de la pochette : position, taille, et fondu de l'une vers l'autre.
+  // La tranche (vue de profil) s'élargit en pochette (vue de face) : on croirait qu'elle pivote.
+  // fondu : 0 = tranche, 1 = pochette ; angle : inclinaison en degrés, autour du centre de la boîte
+  const boite = { x: tx, y: ty, l: tl, h: th, fondu: 0, angle: 0, opacite: 1 }
+  const dessinerBoite = () => {
+    const rotation = `rotate(${boite.angle} ${boite.x + boite.l / 2} ${boite.y + boite.h / 2}) `
+    // La tranche est étirée pour remplir la boîte, puis s'efface vite (dans le premier tiers du fondu)
+    tranche.setAttribute('transform', `${rotation}translate(${boite.x} ${boite.y}) scale(${boite.l / tl} ${boite.h / th}) translate(${-tx} ${-ty})`)
+    tranche.setAttribute('opacity', Math.max(0, 1 - boite.fondu * 3))
+    pochette.setAttribute('transform', `${rotation}translate(${boite.x} ${boite.y}) scale(${boite.l / COTE_POCHETTE_SVG} ${boite.h / COTE_POCHETTE_SVG})`)
+    pochette.setAttribute('opacity', boite.fondu * boite.opacite)
+  }
+
+  // Le disque : son centre et son rayon (caché tant qu'il est dans la pochette)
+  // aplati : 1 = disque rond, vu de face ; plus petit = disque vu de biais (il tourne sur lui-même)
+  const rond = { cx: DISQUE_RENTRE.cx, cy: DISQUE_RENTRE.cy, rayon: IMAGE_3.disque.rayon, aplati: 1, opacite: 0 }
+  const dessinerDisque = () => {
+    const echelle = rond.rayon / RAYON_DISQUE_SVG
+    // disque.svg a son centre en (200, 200) : on le ramène en (0, 0), on le réduit
+    // (moins en largeur s'il est aplati), puis on le place
+    disque.setAttribute('transform', `translate(${rond.cx} ${rond.cy}) scale(${echelle * rond.aplati} ${echelle}) translate(-200 -200)`)
+    disque.setAttribute('opacity', rond.opacite)
+    // Story 7.6 : l'ombre suit le disque (décalage en unités de la vue de dessus, converti pour la scène)
+    ombre.setAttribute('cx', rond.cx + ombreDisque.dx * K_DESSUS)
+    ombre.setAttribute('cy', rond.cy + ombreDisque.dy * K_DESSUS)
+    ombre.setAttribute('r', rond.rayon * ombreDisque.taille)
+    ombre.setAttribute('opacity', ombreDisque.opacite * ombreDisque.visible)
+  }
+  // visible : 0 = cachée (vue de face), 1 = visible (vue de dessus)
+  const ombreDisque = { ...OMBRE_EN_L_AIR, visible: 0 }
+
+  // Story 7.6 : le bras de lecture tourne autour de son pivot (coordonnées de la platine)
+  const brasLecture = { angle: ANGLE_BRAS_REPOS }
+  const dessinerBras = () => bras.setAttribute('transform', `rotate(${brasLecture.angle} ${PIVOT_BRAS.x} ${PIVOT_BRAS.y})`)
+
+  // Où doit être la main droite pour pincer la tête du bras, quand le bras est à « angle » ?
+  // 1. On calcule où est la tête (rotation autour du pivot, puis place de la platine, puis conversion en scène).
+  // 2. On place la main pour que son point de prise (entre index et pouce) tombe sur la tête (même calcul que mains.py).
+  function mainSurTeteBras(angle) {
+    const a = (angle * Math.PI) / 180
+    const dx = TETE_BRAS.x - PIVOT_BRAS.x
+    const dy = TETE_BRAS.y - PIVOT_BRAS.y
+    const teteX = versSceneX(PLATINE.x + PLATINE.echelle * (PIVOT_BRAS.x + dx * Math.cos(a) - dy * Math.sin(a)))
+    const teteY = versSceneY(PLATINE.y + PLATINE.echelle * (PIVOT_BRAS.y + dx * Math.sin(a) + dy * Math.cos(a)))
+    const angleMain = ANGLE_MAIN_BRAS + angle
+    const echelle = ECHELLE_MAIN_BRAS * K_DESSUS
+    const m = (angleMain * Math.PI) / 180
+    const px = PRISE_PINCE.x - 110 // la main tourne autour de son point (110, 130)
+    const py = PRISE_PINCE.y - 130
+    const priseX = 110 + px * Math.cos(m) - py * Math.sin(m)
+    const priseY = 130 + px * Math.sin(m) + py * Math.cos(m)
+    return { x: teteX - echelle * priseX, y: teteY - echelle * priseY, echelle, angle: angleMain }
+  }
+
+  // Les mains : position, taille, angle, pose et opacité
+  const droite = {
+    couches: mainDroite,
+    miroir: null, // null = pas retournée
+    x: tx + MAIN_PINCE.dx,
+    y: ty + MAIN_PINCE.dy + DEPART_MAIN, // en bas, sous le casier
+    echelle: MAIN_PINCE.echelle,
+    angle: MAIN_PINCE.angle,
+    opacite: 0,
+    pose: 'ouverte',
+  }
+  const gauche = {
+    couches: mainGauche,
+    ...IMAGE_3.mainGauche,
+    x: IMAGE_3.mainGauche.x + 70, // miroir : +70 la place 70 unités plus à GAUCHE à l'écran
+    y: IMAGE_3.mainGauche.y + 30,
+    opacite: 0,
+    pose: 'ouverte',
+  }
+
+  // Story 7.6 : la rotation de l'étiquette du disque (vitesse 1 = 1 tour en DUREE_TOUR).
+  // À chaque image, gsap.ticker appelle tournerEtiquette, qui ajoute à l'angle le chemin parcouru depuis l'image précédente.
+  const etiquette = disque.querySelector('#disque-lancement-etiquette')
+  const platine = { vitesse: 0, angle: 0 }
+  const dessinerEtiquette = () => etiquette.setAttribute('transform', `rotate(${platine.angle % 360} 0 0)`) // angle qui augmente = sens horaire
+  const tournerEtiquette = (temps, ecartMs) => {
+    // ecartMs = millisecondes depuis l'image précédente ; × RALENTI pour suivre le ralenti de la timeline
+    platine.angle += (360 / DUREE_TOUR) * platine.vitesse * (ecartMs / 1000) * RALENTI
+    dessinerEtiquette()
+  }
+  const lancerRotation = () => {
+    rotationDisque = tournerEtiquette
+    gsap.ticker.add(rotationDisque)
+  }
+
+  return {
+    tx, ty, tl, th,
+    mainGauche, mainDroite, disque, vueDessus, calqueBras, bouton33, haloBouton, voile, trou,
+    camera, dessinerCamera, boite, dessinerBoite, rond, dessinerDisque, ombreDisque,
+    brasLecture, dessinerBras, mainSurTeteBras, droite, gauche,
+    platine, dessinerEtiquette, lancerRotation,
+  }
+}
+
+// Crée la timeline de l'animation (aller ou retour) ; à la fin, la promesse est tenue avec { passee: false }
+function creerTimeline(terminer) {
+  timeline = gsap.timeline({
+    onComplete: () => {
+      timeline = null
+      terminerAnimation = null
+      terminer({ passee: false })
+    },
+  })
+  timeline.timeScale(RALENTI) // ralentit (ou accélère) toute la séquence d'un coup
+  return timeline
+}
+
+// Petits raccourcis : « bouger » anime une main, « poser » change sa pose en douceur.
+// Le dernier argument = le moment (en secondes) où le mouvement commence.
+function outilsMains(tl) {
+  const bouger = (main, valeurs, duree, debut, ease = 'power2.inOut') =>
+    tl.to(main, { ...valeurs, duration: duree, ease, onUpdate: () => dessinerMain(main) }, debut)
+  const poser = (main, versPose, duree, debut) => {
+    const avance = { t: 0 }
+    let depart // la pose au moment où le changement commence
+    tl.to(
+      avance,
+      {
+        t: 1,
+        duration: duree,
+        ease: 'sine.inOut',
+        onStart: () => (depart = main.pose),
+        onUpdate: () => {
+          main.pose = melangerPoses(depart, versPose, avance.t)
+          dessinerMain(main)
+        },
+      },
+      debut
+    )
+  }
+  return { bouger, poser }
+}
+
+/**
  * Joue l'animation de lancement pour le vinyle cliqué.
  * - svgScene : le <svg> du décor de l'accueil
  * - vinyle : le groupe .vinyle-cliquable cliqué (sa tranche donne la position et la couleur)
@@ -234,165 +479,17 @@ function copierTranche(vinyle) {
 export function jouerLancement(svgScene, vinyle) {
   return new Promise((terminer) => {
     terminerAnimation = terminer // story 7.7 : passerAnimation() pourra la tenir plus tôt
-    /* ====== 1. Préparer les éléments ====== */
-    calque = creer('g', { id: 'calque-lancement', 'aria-hidden': 'true', 'pointer-events': 'none' })
-    // La couleur du vinyle cliqué : pochette et étiquette du disque la lisent dans --couleur-vinyle
-    calque.style.setProperty('--couleur-vinyle', vinyle.style.getPropertyValue('--couleur-vinyle'))
-    svgScene.append(calque) // en dernier dans la scène : par-dessus le décor
+    const {
+      tx, ty,
+      mainGauche, mainDroite, disque, vueDessus, calqueBras, bouton33, haloBouton, voile,
+      camera, dessinerCamera, boite, dessinerBoite, rond, dessinerDisque, ombreDisque,
+      brasLecture, dessinerBras, mainSurTeteBras, droite, gauche,
+      platine: platineEnMarche, lancerRotation,
+    } = preparerScene(svgScene, vinyle)
 
-    // La tranche d'origine : son rectangle plein donne la position et la taille
-    const plein = vinyle.querySelector('rect:not([fill-opacity])')
-    const tx = Number(plein.getAttribute('x'))
-    const ty = Number(plein.getAttribute('y'))
-    const tl = Number(plein.getAttribute('width'))
-    const th = Number(plein.getAttribute('height'))
-
-    const trou = creer('rect', { x: tx, y: ty, width: tl, height: th, fill: '#0B0814' }) // couleur du storyboard
-    const mainGauche = creerMainEnDeuxCouches('main-gauche')
-    const mainDroite = creerMainEnDeuxCouches('main-droite')
-    const disque = creerElementMobile('disque', 'disque-lancement')
-    const tranche = copierTranche(vinyle)
-    const pochette = creerElementMobile('pochette', 'pochette-lancement')
-
-    // Story 7.6 : la vue de dessus, cachée jusqu'au raccord.
-    // On ne déplace pas la caméra (le décor de la bibliothèque sauterait pendant le fondu) :
-    // c'est la vue de dessus qu'on place pour que son cadre remplisse exactement le cadre actuel.
-    // translate(-80 -40) amène le coin du cadre en (0, 0), scale le réduit, translate(575 330) le pose.
-    const placementDessus = `translate(${CADRE_DEMI_TOUR[0]} ${CADRE_DEMI_TOUR[1]}) scale(${K_DESSUS}) translate(${-CADRE_DESSUS[0]} ${-CADRE_DESSUS[1]})`
-    const vueDessus = creer('g', { transform: placementDessus, opacity: 0 })
-    calque.append(vueDessus)
-    insererElement('vue-dessus', vueDessus, 'vue-dessus')
-
-    // Le bras de lecture doit passer AU-DESSUS du disque posé : on le sort de la vue de dessus
-    // et on le met dans son propre calque, placé de la même façon.
-    const calqueBras = creer('g', { transform: placementDessus, opacity: 0 })
-    calqueBras.append(vueDessus.querySelector('#vue-dessus-bras-platine-place'))
-    const bras = calqueBras.querySelector('#vue-dessus-bras-platine')
-
-    // Le bouton « 33 » (1er rectangle du sélecteur) et son halo, ajouté dans la platine, éteint au départ
-    const bouton33 = vueDessus.querySelector('#vue-dessus-selecteur-rpm rect')
-    const haloBouton = creer('circle', {
-      cx: BOUTON_33.cx,
-      cy: BOUTON_33.cy,
-      r: BOUTON_33.halo,
-      fill: 'none',
-      stroke: COULEUR_BOUTON,
-      'stroke-width': 2.4,
-      opacity: 0,
-    })
-    vueDessus.querySelector('#vue-dessus-platine-dessus').append(haloBouton)
-
-    // L'ombre du disque : un cercle noir flouté (le flou est un « filtre » SVG, défini une fois dans <defs>)
-    const defs = creer('defs')
-    const filtre = creer('filter', { id: 'flou-ombre-lancement', x: '-30%', y: '-30%', width: '160%', height: '160%' })
-    filtre.append(creer('feGaussianBlur', { stdDeviation: FLOU_OMBRE * K_DESSUS }))
-    defs.append(filtre)
-    const ombre = creer('circle', { fill: '#000', filter: 'url(#flou-ombre-lancement)', opacity: 0 })
-
-    // Palier 4 : un voile de la couleur du fond de la page, très grand (il déborde de tous les côtés),
-    // qui recouvre peu à peu le décor. À la fin, seul le disque reste visible, comme sur la page projet.
-    const voile = creer('rect', { x: -20000, y: -20000, width: 40000, height: 40000, opacity: 0 })
-    voile.style.fill = 'var(--fond, #0B0B12)'
-
-    // Ordre d'empilement, du fond vers l'avant :
-    // trou, vue de dessus, ombre, voile, doigts des deux mains, disque, bras de lecture, tranche et pochette, pouces des deux mains.
-    // Les doigts passent donc derrière la pochette et le disque, les pouces devant.
-    // La vue de dessus est sous les mains et le disque : ils restent visibles pendant le raccord.
-    calque.append(defs, trou, vueDessus, ombre, voile, mainGauche.dos, mainDroite.dos, disque, calqueBras, tranche, pochette, mainGauche.pouce, mainDroite.pouce)
-
-    // Le vrai vinyle est caché : c'est la copie qui bouge (il est réaffiché à la remise à zéro)
-    vinyleCache = vinyle
-    vinyle.style.visibility = 'hidden'
-
-    /* ====== 2. Ce que GSAP anime : de simples nombres, recopiés dans le dessin à chaque image ====== */
-    // La caméra
-    const camera = enObjet(CADRE_ACCUEIL)
-    const dessinerCamera = () =>
-      svgScene.setAttribute('viewBox', `${camera.x} ${camera.y} ${camera.largeur} ${camera.hauteur}`)
-
-    // La « boîte » de la tranche puis de la pochette : position, taille, et fondu de l'une vers l'autre.
-    // La tranche (vue de profil) s'élargit en pochette (vue de face) : on croirait qu'elle pivote.
-    // fondu : 0 = tranche, 1 = pochette ; angle : inclinaison en degrés, autour du centre de la boîte
-    const boite = { x: tx, y: ty, l: tl, h: th, fondu: 0, angle: 0, opacite: 1 }
-    const dessinerBoite = () => {
-      const rotation = `rotate(${boite.angle} ${boite.x + boite.l / 2} ${boite.y + boite.h / 2}) `
-      // La tranche est étirée pour remplir la boîte, puis s'efface vite (dans le premier tiers du fondu)
-      tranche.setAttribute('transform', `${rotation}translate(${boite.x} ${boite.y}) scale(${boite.l / tl} ${boite.h / th}) translate(${-tx} ${-ty})`)
-      tranche.setAttribute('opacity', Math.max(0, 1 - boite.fondu * 3))
-      pochette.setAttribute('transform', `${rotation}translate(${boite.x} ${boite.y}) scale(${boite.l / COTE_POCHETTE_SVG} ${boite.h / COTE_POCHETTE_SVG})`)
-      pochette.setAttribute('opacity', boite.fondu * boite.opacite)
-    }
-
-    // Le disque : son centre et son rayon (caché tant qu'il est dans la pochette)
-    // aplati : 1 = disque rond, vu de face ; plus petit = disque vu de biais (il tourne sur lui-même)
-    const rond = { cx: DISQUE_RENTRE.cx, cy: DISQUE_RENTRE.cy, rayon: IMAGE_3.disque.rayon, aplati: 1, opacite: 0 }
-    const dessinerDisque = () => {
-      const echelle = rond.rayon / RAYON_DISQUE_SVG
-      // disque.svg a son centre en (200, 200) : on le ramène en (0, 0), on le réduit
-      // (moins en largeur s'il est aplati), puis on le place
-      disque.setAttribute('transform', `translate(${rond.cx} ${rond.cy}) scale(${echelle * rond.aplati} ${echelle}) translate(-200 -200)`)
-      disque.setAttribute('opacity', rond.opacite)
-      // Story 7.6 : l'ombre suit le disque (décalage en unités de la vue de dessus, converti pour la scène)
-      ombre.setAttribute('cx', rond.cx + ombreDisque.dx * K_DESSUS)
-      ombre.setAttribute('cy', rond.cy + ombreDisque.dy * K_DESSUS)
-      ombre.setAttribute('r', rond.rayon * ombreDisque.taille)
-      ombre.setAttribute('opacity', ombreDisque.opacite * ombreDisque.visible)
-    }
-    // visible : 0 = cachée (vue de face), 1 = visible (vue de dessus)
-    const ombreDisque = { ...OMBRE_EN_L_AIR, visible: 0 }
-
-    // Story 7.6 : le bras de lecture tourne autour de son pivot (coordonnées de la platine)
-    const brasLecture = { angle: ANGLE_BRAS_REPOS }
-    const dessinerBras = () => bras.setAttribute('transform', `rotate(${brasLecture.angle} ${PIVOT_BRAS.x} ${PIVOT_BRAS.y})`)
-
-    // Où doit être la main droite pour pincer la tête du bras, quand le bras est à « angle » ?
-    // 1. On calcule où est la tête (rotation autour du pivot, puis place de la platine, puis conversion en scène).
-    // 2. On place la main pour que son point de prise (entre index et pouce) tombe sur la tête (même calcul que mains.py).
-    function mainSurTeteBras(angle) {
-      const a = (angle * Math.PI) / 180
-      const dx = TETE_BRAS.x - PIVOT_BRAS.x
-      const dy = TETE_BRAS.y - PIVOT_BRAS.y
-      const teteX = versSceneX(PLATINE.x + PLATINE.echelle * (PIVOT_BRAS.x + dx * Math.cos(a) - dy * Math.sin(a)))
-      const teteY = versSceneY(PLATINE.y + PLATINE.echelle * (PIVOT_BRAS.y + dx * Math.sin(a) + dy * Math.cos(a)))
-      const angleMain = ANGLE_MAIN_BRAS + angle
-      const echelle = ECHELLE_MAIN_BRAS * K_DESSUS
-      const m = (angleMain * Math.PI) / 180
-      const px = PRISE_PINCE.x - 110 // la main tourne autour de son point (110, 130)
-      const py = PRISE_PINCE.y - 130
-      const priseX = 110 + px * Math.cos(m) - py * Math.sin(m)
-      const priseY = 130 + px * Math.sin(m) + py * Math.cos(m)
-      return { x: teteX - echelle * priseX, y: teteY - echelle * priseY, echelle, angle: angleMain }
-    }
-
-    // Les mains : position, taille, angle, pose et opacité
-    const droite = {
-      couches: mainDroite,
-      miroir: null, // null = pas retournée
-      x: tx + MAIN_PINCE.dx,
-      y: ty + MAIN_PINCE.dy + DEPART_MAIN, // en bas, sous le casier
-      echelle: MAIN_PINCE.echelle,
-      angle: MAIN_PINCE.angle,
-      opacite: 0,
-      pose: 'ouverte',
-    }
-    const gauche = {
-      couches: mainGauche,
-      ...IMAGE_3.mainGauche,
-      x: IMAGE_3.mainGauche.x + 70, // miroir : +70 la place 70 unités plus à GAUCHE à l'écran
-      y: IMAGE_3.mainGauche.y + 30,
-      opacite: 0,
-      pose: 'ouverte',
-    }
-
-    /* ====== 3. La timeline ====== */
-    timeline = gsap.timeline({
-      onComplete: () => {
-        timeline = null
-        terminerAnimation = null
-        terminer({ passee: false })
-      },
-    })
-    timeline.timeScale(RALENTI) // ralentit (ou accélère) toute la séquence d'un coup
+    /* ====== La timeline ====== */
+    creerTimeline(terminer)
+    const { bouger, poser } = outilsMains(timeline)
 
     // Repères de temps (en secondes) : chaque étape commence où la précédente finit
     const debutSortie = DUREE_PRISE
@@ -403,28 +500,7 @@ export function jouerLancement(svgScene, vinyle) {
     const dureeDisque = DUREE_SORTIE - dureePochette
     const debutDisque = debutSortie + dureePochette
 
-    // Petits raccourcis : « bouger » anime une main, « poser » change sa pose en douceur.
-    // Le dernier argument = le moment (en secondes) où le mouvement commence.
-    const bouger = (main, valeurs, duree, debut, ease = 'power2.inOut') =>
-      timeline.to(main, { ...valeurs, duration: duree, ease, onUpdate: () => dessinerMain(main) }, debut)
-    const poser = (main, versPose, duree, debut) => {
-      const avance = { t: 0 }
-      let depart // la pose au moment où le changement commence
-      timeline.to(
-        avance,
-        {
-          t: 1,
-          duration: duree,
-          ease: 'sine.inOut',
-          onStart: () => (depart = main.pose),
-          onUpdate: () => {
-            main.pose = melangerPoses(depart, versPose, avance.t)
-            dessinerMain(main)
-          },
-        },
-        debut
-      )
-    }
+
 
     // --- Caméra : un seul mouvement, dans un seul sens ---
     // Ça démarre doucement (sine.in), ça glisse à vitesse constante (none), ça freine à l'arrivée (sine.out).
@@ -481,12 +557,7 @@ export function jouerLancement(svgScene, vinyle) {
     // Le disque glisse au centre du plateau et l'ombre se resserre sous lui : il « descend ».
     // Les mains l'accompagnent, puis s'ouvrent (tient → ouverte) dans la 2e moitié : elles le lâchent.
     const debutPose = debutRaccord + DUREE_RACCORD
-    const disquePose = {
-      cx: versSceneX(IMAGE_6.disque.cx),
-      cy: versSceneY(IMAGE_6.disque.cy),
-      rayon: IMAGE_6.disque.rayon * K_DESSUS,
-    }
-    timeline.to(rond, { ...disquePose, duration: DUREE_POSE, ease: 'power2.inOut', onUpdate: dessinerDisque }, debutPose)
+    timeline.to(rond, { ...DISQUE_POSE, duration: DUREE_POSE, ease: 'power2.inOut', onUpdate: dessinerDisque }, debutPose)
     timeline.to(ombreDisque, { ...OMBRE_POSEE, duration: DUREE_POSE, ease: 'power2.in', onUpdate: dessinerDisque }, debutPose)
     bouger(gauche, mainVersScene(IMAGE_6.mainGauche), DUREE_POSE, debutPose)
     bouger(droite, mainVersScene(IMAGE_6.mainDroite), DUREE_POSE, debutPose)
@@ -530,33 +601,15 @@ export function jouerLancement(svgScene, vinyle) {
     timeline.to(bouton33, { attr: { fill: COULEUR_BOUTON }, duration: 0.08, ease: 'none' }, appui33)
     timeline.to(haloBouton, { attr: { opacity: 0.8 }, duration: 0.08, ease: 'none' }, appui33)
     // 3. Le disque démarre : sa vitesse passe de 0 à 1 (1 = 1 tour en DUREE_TOUR), puis il tourne sans s'arrêter.
-    //    À chaque image, gsap.ticker appelle tournerEtiquette, qui ajoute à l'angle le chemin parcouru depuis l'image précédente.
-    const etiquette = disque.querySelector('#disque-lancement-etiquette')
-    const platineEnMarche = { vitesse: 0, angle: 0 }
-    const tournerEtiquette = (temps, ecartMs) => {
-      // ecartMs = millisecondes depuis l'image précédente ; × RALENTI pour suivre le ralenti de la timeline
-      platineEnMarche.angle += (360 / DUREE_TOUR) * platineEnMarche.vitesse * (ecartMs / 1000) * RALENTI
-      etiquette.setAttribute('transform', `rotate(${platineEnMarche.angle % 360} 0 0)`) // angle qui augmente = sens horaire
-    }
-    timeline.call(
-      () => {
-        rotationDisque = tournerEtiquette
-        gsap.ticker.add(rotationDisque)
-      },
-      null,
-      appui33
-    )
+    //    (la rotation elle-même est préparée dans preparerScene)
+    timeline.call(lancerRotation, null, appui33)
     timeline.to(platineEnMarche, { vitesse: 1, duration: DEMARRAGE_DISQUE, ease: 'power1.in' }, appui33)
 
     // --- Story 7.6, image 9 : les mains sortent par le bas ---
     // Elles partent un peu avant la fin de l'étape « 33 » (CHEVAUCHEMENT_MAINS), en s'ouvrant et en s'effaçant.
     const debutMains = debut33 + DUREE_33 - CHEVAUCHEMENT_MAINS
-    const sortie = (image) => {
-      const versLeBas = { ...image, y: image.y + DESCENTE_MAINS }
-      return { ...mainVersScene(versLeBas), opacite: 0 }
-    }
-    bouger(gauche, sortie(IMAGE_9.mainGauche), DUREE_MAINS, debutMains, 'power2.in')
-    bouger(droite, sortie(IMAGE_9.mainDroite), DUREE_MAINS, debutMains, 'power2.in')
+    bouger(gauche, mainHorsCadre(IMAGE_9.mainGauche), DUREE_MAINS, debutMains, 'power2.in')
+    bouger(droite, mainHorsCadre(IMAGE_9.mainDroite), DUREE_MAINS, debutMains, 'power2.in')
     poser(droite, 'ouverte', DUREE_MAINS / 2, debutMains)
 
     // --- Story 7.6, image 10 : le disque grossit et glisse jusqu'à sa place de fond ---
@@ -603,6 +656,184 @@ export function jouerLancement(svgScene, vinyle) {
     // Première image : tout est en place avant que l'animation ne démarre
     dessinerBoite()
     dessinerDisque()
+    dessinerMain(droite)
+    dessinerMain(gauche)
+  })
+}
+
+/**
+ * Story 7.7 : joue l'animation de retour (storyboard R1 à R5), de la page projet vers la bibliothèque.
+ * - svgScene : le <svg> du décor de l'accueil (encore caché au départ)
+ * - vinyle : le vinyle à ranger (sa tranche donne la position et la couleur)
+ * - effacerContenu : fonction de main.js qui efface le contenu de la page projet (le disque de fond reste)
+ * - montrerScene : fonction de main.js qui cache la page projet et affiche la scène, sans fondu
+ * Renvoie une promesse, tenue quand l'animation est finie : { passee: false },
+ * ou { passee: true } si le visiteur l'a passée.
+ */
+export function jouerRetour(svgScene, vinyle, { effacerContenu, montrerScene }) {
+  return new Promise((terminer) => {
+    terminerAnimation = terminer // passerAnimation() pourra la tenir plus tôt
+    const {
+      tx, ty, tl, th,
+      mainGauche, mainDroite, disque, vueDessus, calqueBras, bouton33, haloBouton, voile,
+      camera, dessinerCamera, boite, dessinerBoite, rond, dessinerDisque, ombreDisque,
+      brasLecture, dessinerBras, mainSurTeteBras, droite, gauche,
+      platine, dessinerEtiquette, lancerRotation,
+    } = preparerScene(svgScene, vinyle)
+
+    /* ====== 1. État de départ : la fin de l'aller (image 10) ====== */
+    // Le vinyle est hors du casier : on cache le vrai, le trou sombre est visible
+    vinyleCache = vinyle
+    vinyle.style.visibility = 'hidden'
+    // Vue de dessus visible, sous le voile ; le bras est posé sur le disque, mais caché (il est au-dessus du voile)
+    vueDessus.setAttribute('opacity', 1)
+    voile.setAttribute('opacity', 1)
+    brasLecture.angle = ANGLE_BRAS_POSE
+    dessinerBras()
+    // Le bouton 33 est allumé ; on garde sa couleur éteinte pour R2
+    const couleurBoutonEteint = bouton33.getAttribute('fill')
+    bouton33.setAttribute('fill', COULEUR_BOUTON)
+    haloBouton.setAttribute('opacity', 0.8)
+    // Le disque est posé (ombre resserrée) ; la pochette de la vue de face est prête, mais invisible
+    Object.assign(ombreDisque, OMBRE_POSEE, { visible: 1 })
+    Object.assign(boite, IMAGE_4.pochette, { fondu: 1, opacite: 0 })
+    // Les mains attendent hors du cadre, en bas, au premier plan (au-dessus du disque et du bras)
+    Object.assign(gauche, mainHorsCadre(IMAGE_9.mainGauche), { pose: 'ouverte' })
+    Object.assign(droite, mainHorsCadre(IMAGE_9.mainDroite), { pose: 'ouverte' })
+    calqueBras.after(mainGauche.dos, mainDroite.dos)
+
+    /* ====== 2. La timeline ====== */
+    creerTimeline(terminer)
+    const { bouger, poser } = outilsMains(timeline)
+
+    // --- R1, 1re partie : le contenu de la page projet s'efface (le disque de fond reste) ---
+    timeline.call(effacerContenu, null, 0)
+
+    // --- R1, 2e partie : bascule vers la scène ---
+    // Le disque de l'animation prend exactement la place, la taille et l'angle du disque de fond (comme à la fin de l'aller).
+    const debutPlatine = DUREE_RETOUR_EFFACEMENT
+    timeline.call(
+      () => {
+        const fond = mesurerDisqueDeFond() // mesuré tant que la page projet est encore affichée
+        platine.angle = lireRotationFondVinyle()
+        platine.vitesse = 1
+        montrerScene()
+        Object.assign(camera, enObjet(CADRE_DEMI_TOUR))
+        dessinerCamera()
+        if (fond) {
+          // Pixels de l'écran → coordonnées de la scène (même calcul qu'à la fin de l'aller)
+          const versScene = svgScene.getScreenCTM().inverse()
+          const centre = new DOMPoint(fond.x, fond.y).matrixTransform(versScene)
+          Object.assign(rond, { cx: centre.x, cy: centre.y, rayon: fond.rayon * versScene.a, opacite: fond.opacite })
+        } else {
+          Object.assign(rond, DISQUE_POSE, { opacite: 1 })
+        }
+        dessinerDisque()
+        dessinerEtiquette()
+        lancerRotation()
+      },
+      null,
+      debutPlatine
+    )
+    // Le disque rétrécit jusqu'au plateau, le voile se lève, le bras réapparaît
+    timeline.to(rond, { ...DISQUE_POSE, opacite: 1, duration: DUREE_RETOUR_PLATINE, ease: 'power2.inOut', onUpdate: dessinerDisque }, debutPlatine)
+    timeline.to(voile, { opacity: 0, duration: DUREE_RETOUR_PLATINE, ease: 'power1.out' }, debutPlatine)
+    timeline.to(calqueBras, { opacity: 1, duration: DUREE_RETOUR_PLATINE, ease: 'none' }, debutPlatine)
+
+    // --- R2 : la main droite ramène le bras au repos, le bouton s'éteint, le disque s'arrête ---
+    const debutBras = debutPlatine + DUREE_RETOUR_PLATINE
+    const dureeApprocheBras = DUREE_RETOUR_BRAS * PART_APPROCHE_BRAS
+    const dureeRotationBras = DUREE_RETOUR_BRAS - dureeApprocheBras
+    const debutRotationBras = debutBras + dureeApprocheBras
+    bouger(droite, { ...mainSurTeteBras(ANGLE_BRAS_POSE), opacite: 1 }, dureeApprocheBras, debutBras, 'power2.out')
+    poser(droite, 'pince', dureeApprocheBras, debutBras)
+    timeline.to(
+      brasLecture,
+      {
+        angle: ANGLE_BRAS_REPOS,
+        duration: dureeRotationBras,
+        ease: 'power1.inOut',
+        onUpdate: () => {
+          dessinerBras()
+          Object.assign(droite, mainSurTeteBras(brasLecture.angle))
+          dessinerMain(droite)
+        },
+      },
+      debutRotationBras
+    )
+    timeline.to(bouton33, { attr: { fill: couleurBoutonEteint }, duration: 0.08, ease: 'none' }, debutRotationBras)
+    timeline.to(haloBouton, { attr: { opacity: 0 }, duration: 0.08, ease: 'none' }, debutRotationBras)
+    timeline.to(platine, { vitesse: 0, duration: dureeRotationBras, ease: 'power1.out' }, debutRotationBras)
+
+    // --- R3 : les deux mains prennent le disque et le soulèvent ---
+    // Les doigts repassent derrière le disque (pouces devant), comme quand il était tenu à l'aller
+    const debutSoulever = debutBras + DUREE_RETOUR_BRAS
+    const dureePrise = DUREE_RETOUR_SOULEVER / 2
+    timeline.call(() => disque.before(mainGauche.dos, mainDroite.dos), null, debutSoulever)
+    // 1. Les mains viennent de chaque côté du disque en se refermant (ouverte → tient)
+    bouger(gauche, { ...mainVersScene(IMAGE_6.mainGauche), opacite: 1 }, dureePrise, debutSoulever, 'power2.out')
+    bouger(droite, mainVersScene(IMAGE_6.mainDroite), dureePrise, debutSoulever)
+    poser(gauche, 'tient', dureePrise, debutSoulever)
+    poser(droite, 'tient', dureePrise, debutSoulever)
+    // 2. Elles le soulèvent : il remonte à sa place de l'image 4, l'ombre s'écarte
+    const debutLevee = debutSoulever + dureePrise
+    const dureeLevee = DUREE_RETOUR_SOULEVER - dureePrise
+    timeline.to(rond, { ...IMAGE_4.disque, duration: dureeLevee, ease: 'power2.inOut', onUpdate: dessinerDisque }, debutLevee)
+    timeline.to(ombreDisque, { ...OMBRE_EN_L_AIR, duration: dureeLevee, ease: 'power2.out', onUpdate: dessinerDisque }, debutLevee)
+    bouger(gauche, IMAGE_4.mainGauche, dureeLevee, debutLevee)
+    bouger(droite, IMAGE_4.mainDroite, dureeLevee, debutLevee)
+
+    // --- R3, fin : bascule vers la vue de face (l'inverse du raccord de l'aller) ---
+    const debutRaccord = debutSoulever + DUREE_RETOUR_SOULEVER
+    timeline.to([vueDessus, calqueBras], { opacity: 0, duration: DUREE_RETOUR_RACCORD, ease: 'none' }, debutRaccord)
+    timeline.to(ombreDisque, { visible: 0, duration: DUREE_RETOUR_RACCORD, ease: 'none', onUpdate: dessinerDisque }, debutRaccord)
+    timeline.to(boite, { opacite: IMAGE_4.pochette.opacite, duration: DUREE_RETOUR_RACCORD, ease: 'none', onUpdate: dessinerBoite }, debutRaccord)
+
+    // --- R4 : le disque rentre dans sa pochette ---
+    const debutRentrer = debutRaccord + DUREE_RETOUR_RACCORD
+    const dureeApprochePochette = DUREE_RETOUR_RENTRER / 2
+    const debutGlissement = debutRentrer + dureeApprochePochette
+    const dureeGlissement = DUREE_RETOUR_RENTRER - dureeApprochePochette
+    // La caméra commence à reculer (elle accélère doucement, comme l'aller freinait)
+    timeline.to(camera, { ...enObjet(CADRE_SORTIE), duration: DUREE_RETOUR_RENTRER, ease: 'sine.in', onUpdate: dessinerCamera }, debutRentrer)
+    // 1. La main gauche reprend la pochette (image 3), la main droite amène le disque à son bord
+    timeline.to(boite, { ...IMAGE_3.pochette, angle: 0, opacite: 1, duration: dureeApprochePochette, ease: 'power2.inOut', onUpdate: dessinerBoite }, debutRentrer)
+    timeline.to(rond, { ...IMAGE_3.disque, duration: dureeApprochePochette, ease: 'power2.inOut', onUpdate: dessinerDisque }, debutRentrer)
+    bouger(gauche, IMAGE_3.mainGauche, dureeApprochePochette, debutRentrer)
+    poser(gauche, 'pince', dureeApprochePochette, debutRentrer)
+    bouger(droite, IMAGE_3.mainDroite, dureeApprochePochette, debutRentrer)
+    // 2. Le disque glisse dans la pochette ; la main droite le pousse
+    const ecartMainDisque = IMAGE_3.mainDroite.x - IMAGE_3.disque.cx
+    timeline.to(rond, { cx: DISQUE_RENTRE.cx, duration: dureeGlissement, ease: 'power2.inOut', onUpdate: dessinerDisque }, debutGlissement)
+    bouger(droite, { x: DISQUE_RENTRE.cx + ecartMainDisque }, dureeGlissement, debutGlissement)
+    timeline.set(rond, { opacite: 0, onComplete: dessinerDisque }, debutGlissement + dureeGlissement) // rangé : caché par la pochette
+
+    // --- R5 : la pochette redevient la tranche, poussée dans le casier ; la caméra recule jusqu'à l'accueil ---
+    const debutRanger = debutRentrer + DUREE_RETOUR_RENTRER
+    const dureeTranche = DUREE_RETOUR_RANGER * 0.4
+    const dureePousse = DUREE_RETOUR_RANGER * 0.3
+    const dureeDepart = DUREE_RETOUR_RANGER - dureeTranche - dureePousse
+    const debutPousse = debutRanger + dureeTranche
+    const debutDepart = debutPousse + dureePousse
+    // La caméra : à vitesse constante jusqu'au cadre de la prise, puis elle freine jusqu'à l'accueil
+    timeline
+      .to(camera, { ...enObjet(CADRE_PRISE), duration: dureeTranche, ease: 'none', onUpdate: dessinerCamera }, debutRanger)
+      .to(camera, { ...enObjet(CADRE_ACCUEIL), duration: dureePousse + dureeDepart, ease: 'sine.out', onUpdate: dessinerCamera }, debutPousse)
+    // 1. La pochette pivote et redevient la tranche, au-dessus du casier ; la main droite la pince, la gauche s'en va
+    timeline.to(boite, { x: tx, y: ty - TIRAGE, l: tl, h: th, fondu: 0, duration: dureeTranche, ease: 'power2.inOut', onUpdate: dessinerBoite }, debutRanger)
+    bouger(droite, { x: tx + MAIN_PINCE.dx, y: ty + MAIN_PINCE.dy - TIRAGE, echelle: MAIN_PINCE.echelle, angle: MAIN_PINCE.angle }, dureeTranche, debutRanger)
+    poser(droite, 'pince', dureeTranche, debutRanger)
+    bouger(gauche, { x: IMAGE_3.mainGauche.x + 70, y: IMAGE_3.mainGauche.y + 30, opacite: 0 }, dureeTranche, debutRanger, 'power2.in')
+    poser(gauche, 'ouverte', dureeTranche, debutRanger)
+    // 2. La main pousse la tranche dans le casier
+    timeline.to(boite, { y: ty, duration: dureePousse, ease: 'power2.inOut', onUpdate: dessinerBoite }, debutPousse)
+    bouger(droite, { y: ty + MAIN_PINCE.dy }, dureePousse, debutPousse)
+    // 3. La main lâche et repart vers le bas en s'effaçant
+    bouger(droite, { y: ty + MAIN_PINCE.dy + DEPART_MAIN, opacite: 0 }, dureeDepart, debutDepart, 'power2.in')
+    poser(droite, 'ouverte', dureeDepart, debutDepart)
+
+    // Première image (la scène est encore cachée : seul compte l'état de départ des nombres)
+    dessinerBoite()
     dessinerMain(droite)
     dessinerMain(gauche)
   })
