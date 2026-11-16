@@ -9,14 +9,14 @@ Ces stories remplacent les anciennes 7.2 et 8.1 de docs/stories-page-projet.md.
 | # | Story | Version |
 |---|---|---|
 | 7.1 ✅ | Storyboard et éléments dessinés (fait avec Claude, hors Claude Code) | — |
-| 7.2 | Préparer les fichiers : platine vide, nouvelle main-curseur, éléments de l'animation | MVP |
-| 7.3 | Le disque en fond de la page projet (fixe, atténué, qui tourne) | MVP |
-| 7.4 | Le scratch au défilement (main en fond) | V2 |
-| 7.5 | Animation de lancement, partie 1 : zoom, prise du vinyle, sortie de la pochette, demi-tour | V2 |
-| 7.6 | Animation de lancement, partie 2 : vue de dessus, pose, bras, 33 tours, arrivée sur la page projet | V2 |
-| 7.7 | Animation de retour, interruptions, bouton « Passer », mobile | V2 |
+| 7.2 ✅ | Préparer les fichiers : platine vide, nouvelle main-curseur, éléments de l'animation | MVP |
+| 7.3 ✅ | Le disque en fond de la page projet (fixe, atténué, qui tourne) | MVP |
+| 7.4 ⚠️ | Le scratch au défilement (main en fond) : réaction du disque livrée, main de scratch à revoir | V2 |
+| 7.5 ✅ | Animation de lancement, partie 1 : zoom, prise du vinyle, sortie de la pochette, demi-tour | V2 |
+| 7.6 ✅ | Animation de lancement, partie 2 : vue de dessus, pose, bras, 33 tours, arrivée sur la page projet | V2 |
+| 7.7 ✅ | Animation de retour, interruptions, bouton « Passer », mobile | V2 |
 
-Une story = une session Claude Code en plan mode, puis `/clear`. On ne passe à la suivante qu'après le test dans le navigateur et le commit.
+Une story = une session Claude Code, puis `/clear`. Claude présente un plan court et attend la validation avant d'exécuter (voir CLAUDE.md). On ne passe à la suivante qu'après le test dans le navigateur et le commit.
 
 ## Fichiers de référence
 
@@ -212,11 +212,14 @@ Une story = une session Claude Code en plan mode, puis `/clear`. On ne passe à 
 
 ---
 
-## Message type pour Claude Code (plan mode)
+## Message type pour Claude Code
 
 ```
 Lis CLAUDE.md, puis docs/stories-animation-vinyle.md, section « Story 7.X ».
 Références : maquettes/animation/ (storyboard, page projet, éléments, mains.py) et src/assets/animation/.
-Propose un plan court (fichiers touchés, étapes, risques), puis attends ma validation.
-Après validation : exécute, lance npm run build, et arrête-toi avant le commit pour que je teste.
+Propose un plan court (fichiers touchés, étapes, risques) et, pour toute décision technique importante,
+2 ou 3 options avec ta recommandation. Attends ma validation.
+Si la story est longue, propose de la découper en parties (une partie = un test et un commit).
+Après validation : exécute, mets à jour la story dans ce fichier, lance npm run build,
+et arrête-toi avant le commit pour que je teste.
 ```
