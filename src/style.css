@@ -434,6 +434,18 @@ body {
   opacity: 0;
 }
 
+/* Story 7.5 : pendant l'animation de lancement (classe posée par main.js).
+   Nom, poste, consigne et bouton son sont en HTML : ils ne suivent pas le zoom
+   de la caméra, on les efface donc rapidement. La souris n'agit plus sur la scène. */
+.scene--lancement {
+  pointer-events: none;
+}
+
+.scene--lancement :is(.identite, .consigne, .bouton-son) {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
 /* En vue projet (classe posée sur <html> par main.js), la page défile normalement */
 html.mode-projet {
   height: auto;

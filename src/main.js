@@ -3,6 +3,7 @@ import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
 import { activerEffetsDefilement } from './effets-defilement.js' // US4.5
 import { preparerFondVinyle, demarrerFondVinyle, arreterFondVinyle, signalerWireframeVisible } from './fond-vinyle.js' // Stories 7.3 et 7.4
+import { lancementPossible, lancementEnCours, jouerLancement, reinitialiserLancement } from './animation/lancement.js' // Story 7.5
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS
 const decor = document.querySelector('#decor')
@@ -182,7 +183,20 @@ if (vinyleConnect) {
   vinyleConnect.addEventListener('blur', masquerInfoBulle)
 }
 
-function ouvrirProjet() {
+async function ouvrirProjet() {
+  // Story 7.5 : un clic pendant l'animation est ignoré (pas de double lancement)
+  if (lancementEnCours()) return
+
+  // Story 7.5 : l'animation de lancement se joue d'abord (sauf avec « réduire les animations »)
+  if (lancementPossible()) {
+    cacherMain()
+    masquerInfoBulle()
+    // Efface nom, poste, consigne et bouton son, et bloque la souris sur la scène (style.css)
+    sceneEl.classList.add('scene--lancement')
+    // await : on attend la fin de l'animation avant de passer à la suite
+    await jouerLancement(decor.querySelector('svg'), vinyleConnect)
+  }
+
   // pushState change l'adresse et crée une entrée dans l'historique (le retour navigateur marche).
   // On y note qu'on vient de l'accueil : le bouton « ← Bibliothèque » s'en servira.
   history.pushState({ depuisAccueil: true }, '', '#connect')
@@ -236,6 +250,13 @@ function afficherVue({ instantane = false } = {}) {
     // (story 7.4 : le scratch au défilement démarre et s'arrête avec lui)
     if (versProjet) demarrerFondVinyle()
     else arreterFondVinyle()
+
+    // Story 7.5 : la scène est maintenant cachée : on la remet dans son état d'accueil
+    // (caméra au large, textes visibles), pour un retour à la bibliothèque propre
+    if (versProjet) {
+      reinitialiserLancement(decor.querySelector('svg'))
+      sceneEl.classList.remove('scene--lancement')
+    }
 
     if (instantane) return // ouverture directe : on ne déplace pas le focus
     // Focus : sur le titre du projet à l'ouverture, sur le vinyle Connect au retour
