@@ -16,10 +16,10 @@ import { appliquerPose, melangerPoses } from './main-articulee.js'
 
 /* ---------- Réglages : modifiez ces valeurs pour changer le rythme ---------- */
 // Durées en secondes (storyboard : 0 → 0,4 s, 0,4 → 0,9 s, 0,9 → 1,2 s)
-const DUREE_PRISE = 0.4 // image 1 → 2 : zoom vers la bibliothèque, la main pince et tire la tranche
-const DUREE_SORTIE = 0.5 // image 2 → 3 : pochette, main gauche, sortie du disque
-const DUREE_DEMI_TOUR = 0.3 // image 3 → 4 : demi-tour du disque
-const PAUSE_FIN = 0.15 // on reste un instant sur l'image 4 avant le fondu vers la page projet
+const DUREE_PRISE = 0.5 // image 1 → 2 : zoom vers la bibliothèque, la main pince et tire la tranche
+const DUREE_SORTIE = 0.7 // image 2 → 3 : pochette, main gauche, sortie du disque
+const DUREE_DEMI_TOUR = 0.7 // image 3 → 4 : demi-tour du disque
+const PAUSE_FIN = 0.55 // on reste un instant sur l'image 4 avant le fondu vers la page projet
 const RALENTI = 1 // 1 = vitesse normale ; 0.25 = 4 fois plus lent (pratique pour observer)
 
 // Cadres de la caméra = le viewBox du SVG de la scène : [x, y, largeur, hauteur]
