@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- TEMPORAIRE (story 7.2) : page de test des poses de la main articulée.
+     Visible seulement avec « npm run dev », à l'adresse /test-poses.html.
+     Elle n'est pas publiée (Vite ne construit que index.html).
+     À supprimer avec test-poses.js quand l'animation sera en place. -->
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test des poses de main</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #0B0B12;
+        color: #F5F3FF;
+        font-family: system-ui, sans-serif;
+      }
+      .grille {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 24px;
+      }
+      figure {
+        margin: 0;
+        padding: 12px;
+        background: #17171F;
+        border-radius: 12px;
+        text-align: center;
+      }
+      figure svg {
+        width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Test des poses de main (temporaire)</h1>
+    <div class="grille" id="grille"></div>
+    <script type="module" src="./test-poses.js"></script>
+  </body>
+</html>

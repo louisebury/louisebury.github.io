@@ -269,9 +269,10 @@ body {
   height: auto;
   pointer-events: none; /* ne bloque ni les clics ni le survol des vinyles */
   /* --x / --y = position de la souris (posées par main.js).
-     Le 2e décalage recule l'image pour que le bout de l'index (38 % / 9 %) soit pile sous la souris. */
-  transform: translate(var(--x, 0), var(--y, 0)) translate(-38%, -9%);
-  transform-origin: 38% 9%; /* la pression s'écrase vers le bout du doigt */
+     Le 2e décalage recule l'image pour que le bout de l'index soit pile sous la souris.
+     Story 7.2 : nouvelle main-pointe.svg, bout de l'index à 37,9 % de la largeur et 13,9 % de la hauteur. */
+  transform: translate(var(--x, 0), var(--y, 0)) translate(-37.9%, -13.9%);
+  transform-origin: 37.9% 13.9%; /* la pression s'écrase vers le bout du doigt */
   transition: scale 80ms ease;
 }
 
