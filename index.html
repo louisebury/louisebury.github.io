@@ -45,6 +45,10 @@
       </button>
     </main>
 
+    <!-- Story 7.7 : bouton « Passer », visible seulement pendant une animation (affiché par src/main.js).
+         Il est hors de la scène : pendant l'animation, la scène ignore la souris (style.css). -->
+    <button class="bouton-passer" type="button" aria-keyshortcuts="Escape" hidden>Passer</button>
+
     <!-- US4.1 : vue projet. Un seul <main> visible à la fois : l'autre porte « hidden ».
          src/main.js affiche cette vue quand l'adresse se termine par #connect. -->
     <main class="vue-projet" hidden>

@@ -3,7 +3,7 @@ import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
 import { activerEffetsDefilement } from './effets-defilement.js' // US4.5
 import { preparerFondVinyle, demarrerFondVinyle, arreterFondVinyle, signalerWireframeVisible } from './fond-vinyle.js' // Stories 7.3 et 7.4
-import { lancementPossible, lancementEnCours, jouerLancement, reinitialiserLancement } from './animation/lancement.js' // Story 7.5
+import { lancementPossible, lancementEnCours, jouerLancement, reinitialiserLancement, passerAnimation } from './animation/lancement.js' // Stories 7.5 et 7.7
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS
 const decor = document.querySelector('#decor')
@@ -174,7 +174,12 @@ if (vinyleConnect) {
 
   vinyleConnect.addEventListener('click', ouvrirProjet)
   vinyleConnect.addEventListener('keydown', (evenement) => {
-    if (evenement.key === 'Enter') ouvrirProjet()
+    if (evenement.key === 'Enter') {
+      // Story 7.7 : preventDefault empêche cette touche Entrée d'« appuyer » aussi
+      // sur le bouton « Passer », qui reçoit le focus au début de l'animation
+      evenement.preventDefault()
+      ouvrirProjet()
+    }
   })
 
   // Au clavier, l'info-bulle s'affiche aussi (pas lors d'un focus donné par la souris)
@@ -191,22 +196,64 @@ async function ouvrirProjet() {
   if (lancementEnCours()) return
 
   // Story 7.5 : l'animation de lancement se joue d'abord (sauf avec « réduire les animations »)
+  // (story 7.7 : ni sous 768 px)
   const avecLancement = lancementPossible()
+  let animationPassee = false
   if (avecLancement) {
     cacherMain()
     masquerInfoBulle()
     // Efface nom, poste, consigne et bouton son, et bloque la souris sur la scène (style.css)
     sceneEl.classList.add('scene--lancement')
-    // await : on attend la fin de l'animation avant de passer à la suite
-    await jouerLancement(decor.querySelector('svg'), vinyleConnect)
+    activerPasser() // story 7.7
+    // await : on attend la fin de l'animation (ou qu'elle soit passée) avant de passer à la suite
+    const resultat = await jouerLancement(decor.querySelector('svg'), vinyleConnect)
+    animationPassee = resultat.passee
+    desactiverPasser()
   }
 
   // pushState change l'adresse et crée une entrée dans l'historique (le retour navigateur marche).
   // On y note qu'on vient de l'accueil : le bouton « ← Bibliothèque » s'en servira.
   history.pushState({ depuisAccueil: true }, '', '#connect')
-  // Story 7.6 : après l'animation, pas de fondu de toute la vue (le disque est déjà à sa place de fond)
-  afficherVue({ apresLancement: avecLancement })
+  // Story 7.6 : après l'animation, pas de fondu de toute la vue (le disque est déjà à sa place de fond).
+  // Story 7.7 : si elle a été passée, le disque n'est pas à sa place : simple fondu.
+  afficherVue({ apresLancement: avecLancement && !animationPassee })
 }
+
+/* ---------------------------------------------------------
+   Story 7.7 : passer l'animation
+   Pendant une animation, on peut la passer par :
+   - le bouton « Passer » (souris, ou Tab puis Entrée) ;
+   - la touche Échap ;
+   - un clic n'importe où dans la page.
+   --------------------------------------------------------- */
+const boutonPasser = document.querySelector('.bouton-passer')
+let minuteurEcoutePasser = null
+
+function activerPasser() {
+  boutonPasser.hidden = false
+  // Le focus va sur le bouton : au clavier, Entrée suffit pour passer
+  boutonPasser.focus({ preventScroll: true })
+  document.addEventListener('keydown', passerAuClavier)
+  // Le clic qui vient de lancer l'animation est encore en train de « remonter » la page
+  // (du vinyle jusqu'au document). Si on écoutait le document tout de suite, ce même clic
+  // y arriverait et passerait l'animation aussitôt. setTimeout(…, 0) attend qu'il ait fini.
+  minuteurEcoutePasser = setTimeout(() => document.addEventListener('click', passerAnimation), 0)
+}
+
+function desactiverPasser() {
+  clearTimeout(minuteurEcoutePasser)
+  document.removeEventListener('click', passerAnimation)
+  document.removeEventListener('keydown', passerAuClavier)
+  boutonPasser.hidden = true
+}
+
+function passerAuClavier(evenement) {
+  if (evenement.key === 'Escape') passerAnimation()
+}
+
+// Le clic sur le bouton remonte aussi jusqu'au document : passerAnimation() est alors appelée
+// deux fois, mais la seconde ne fait rien (il n'y a plus d'animation en cours).
+boutonPasser.addEventListener('click', passerAnimation)
 
 // 2. Boutons « ← Bibliothèque » : forEach pose le même écouteur sur chacun
 boutonsRetour.forEach((bouton) => bouton.addEventListener('click', revenirALaBibliotheque))

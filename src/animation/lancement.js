@@ -143,14 +143,33 @@ const IMAGE_9 = {
 const DESCENTE_MAINS = 250 // les mains finissent 250 unités (vue de dessus) plus bas que l'image 9 : hors du cadre
 
 const reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)')
+const ecranLarge = window.matchMedia('(min-width: 768px)') // story 7.7 : sous 768 px, pas d'animation
 let timeline = null // l'animation en cours (null = aucune)
+let terminerAnimation = null // story 7.7 : la fonction qui tient la promesse de l'animation en cours
 let calque = null // le groupe <g> qui contient tout ce que l'animation ajoute à la scène
 let vinyleCache = null // le vinyle d'origine, caché pendant l'animation
 let rotationDisque = null // story 7.6 : la fonction qui fait tourner l'étiquette à chaque image (null = arrêtée)
 
 // Vrai si l'animation peut se jouer (sinon main.js fait un simple fondu)
+// (story 7.7 : ni avec « réduire les animations », ni sur un écran de moins de 768 px)
 export function lancementPossible() {
-  return !reduireAnimations.matches
+  return !reduireAnimations.matches && ecranLarge.matches
+}
+
+/**
+ * Story 7.7 : « Passer ». Arrête l'animation en cours et la déclare finie tout de suite.
+ * La promesse de jouerLancement est tenue avec { passee: true } : main.js affiche alors
+ * la page projet par un simple fondu (le disque de fond tourne déjà, il n'y a rien à raccorder).
+ * Le décor de l'animation est nettoyé ensuite par reinitialiserLancement, comme d'habitude.
+ * Appeler cette fonction sans animation en cours ne fait rien.
+ */
+export function passerAnimation() {
+  if (!timeline) return
+  timeline.kill() // la timeline s'arrête net, sans jouer la suite
+  timeline = null
+  const terminer = terminerAnimation
+  terminerAnimation = null
+  if (terminer) terminer({ passee: true })
 }
 
 // Vrai pendant l'animation : main.js ignore alors les nouveaux clics
@@ -209,10 +228,12 @@ function copierTranche(vinyle) {
  * Joue l'animation de lancement pour le vinyle cliqué.
  * - svgScene : le <svg> du décor de l'accueil
  * - vinyle : le groupe .vinyle-cliquable cliqué (sa tranche donne la position et la couleur)
- * Renvoie une promesse, tenue quand l'animation est finie.
+ * Renvoie une promesse, tenue quand l'animation est finie : { passee: false },
+ * ou { passee: true } si le visiteur l'a passée (story 7.7).
  */
 export function jouerLancement(svgScene, vinyle) {
   return new Promise((terminer) => {
+    terminerAnimation = terminer // story 7.7 : passerAnimation() pourra la tenir plus tôt
     /* ====== 1. Préparer les éléments ====== */
     calque = creer('g', { id: 'calque-lancement', 'aria-hidden': 'true', 'pointer-events': 'none' })
     // La couleur du vinyle cliqué : pochette et étiquette du disque la lisent dans --couleur-vinyle
@@ -367,7 +388,8 @@ export function jouerLancement(svgScene, vinyle) {
     timeline = gsap.timeline({
       onComplete: () => {
         timeline = null
-        terminer()
+        terminerAnimation = null
+        terminer({ passee: false })
       },
     })
     timeline.timeScale(RALENTI) // ralentit (ou accélère) toute la séquence d'un coup
@@ -605,6 +627,7 @@ function dessinerMain(main) {
 export function reinitialiserLancement(svgScene) {
   if (timeline) timeline.kill()
   timeline = null
+  terminerAnimation = null
   if (rotationDisque) gsap.ticker.remove(rotationDisque) // story 7.6 : le disque de l'animation arrête de tourner
   rotationDisque = null
   if (calque) calque.remove()

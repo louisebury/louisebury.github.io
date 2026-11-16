@@ -446,6 +446,37 @@ body {
   transition: opacity 150ms ease;
 }
 
+/* Story 7.7 : bouton « Passer », en bas à droite, pendant une animation.
+   Il est fixé à l'écran (hors de la scène) : on l'exprime donc en px, pas en cqw. */
+.bouton-passer {
+  position: fixed;
+  right: 24px;
+  bottom: 20px;
+  z-index: 50; /* au-dessus de la scène et de la page projet */
+  padding: 8px 20px;
+  font-family: 'Tilt Neon', sans-serif;
+  font-size: 1rem;
+  color: var(--texte);
+  background: rgb(23 23 31 / 0.85);
+  border: 2px solid var(--lavande);
+  border-radius: 999px;
+  box-shadow:
+    0 0 10px rgb(192 132 252 / 0.6),
+    inset 0 0 8px rgb(192 132 252 / 0.25);
+  cursor: pointer;
+}
+
+.bouton-passer:hover {
+  box-shadow:
+    0 0 16px rgb(192 132 252 / 0.85),
+    inset 0 0 8px rgb(192 132 252 / 0.35);
+}
+
+.bouton-passer:focus-visible {
+  outline: 2px solid var(--lavande);
+  outline-offset: 3px;
+}
+
 /* En vue projet (classe posée sur <html> par main.js), la page défile normalement */
 html.mode-projet {
   height: auto;

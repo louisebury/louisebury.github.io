@@ -176,6 +176,24 @@ Une story = une session Claude Code en plan mode, puis `/clear`. On ne passe à 
 6. **La même timeline sert pour les 7 vinyles.** Seuls la couleur et la position de la tranche changent. Ces deux valeurs sont lues sur le vinyle cliqué.
 7. Le focus clavier revient sur le vinyle au retour (comme en 4.1).
 
+**Précisions validées (16/11/2026)**
+- **Technique du retour : option A**, une timeline de retour dédiée (pas l'aller joué à l'envers). Elle réutilise les éléments, les poses et les cadres de caméra de l'aller.
+- **Durées du retour :** en constantes en haut de `src/animation/lancement.js`. Même rythme que l'aller, environ 2,5 s maximum.
+- **Le clic qui lance l'animation ne compte pas comme un clic « Passer ».** L'écoute des clics sur toute la page ne commence qu'une fois ce clic terminé. De même, la touche Entrée qui ouvre un vinyle n'active pas le bouton « Passer ».
+- **Bouton retour du navigateur :** simple fondu. **« ← Bibliothèque » :** animation de retour.
+- **Retour en remontant au-delà du haut de la page projet.** Il ne se déclenche que si deux conditions sont réunies :
+  - la page est restée tout en haut depuis au moins 0,5 s avant qu'on commence à compter ;
+  - le mouvement vers le haut, cumulé, dépasse un seuil.
+
+  Ces deux réglages sont des constantes. Un interrupteur `RETOUR_PAR_DEFILEMENT` (`true` / `false`) permet de couper ce déclenchement.
+- **Découpage :**
+  - **Partie 1** (interruptions, bouton « Passer », fondus sur mobile et avec « réduire les animations ») ;
+  - **Partie 2** (animation de retour R1 à R5, et retour par le défilement).
+
+**Partie 1 : livré**
+- Le bouton « Passer » (néon lavande, en bas à droite) est visible pendant l'animation et reçoit le focus. On passe l'animation avec ce bouton (clic ou Entrée), avec Échap, ou par un clic n'importe où. La page projet s'affiche alors par un simple fondu, avec le disque de fond qui tourne.
+- Sous 768 px, pas d'animation : simple fondu.
+
 ---
 
 ## Message type pour Claude Code (plan mode)
