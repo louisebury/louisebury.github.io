@@ -85,6 +85,11 @@ Une story = une session Claude Code en plan mode, puis `/clear`. On ne passe à 
 
 ## Story 7.4 : le scratch au défilement
 
+> **Statut : à revoir.**
+> - **Livré :** la réaction du disque au défilement. Il tourne dans le sens horaire quand on descend, anti-horaire quand on remonte, à une vitesse proportionnelle au défilement (bornée), puis reprend doucement sa rotation normale 0,6 s après l'arrêt. Pas de réaction sous 768 px ni avec « réduire les animations ».
+> - **Mis de côté :** la main de scratch. Le code est conservé mais désactivé par l'interrupteur `MAIN_SCRATCH_ACTIVE` (en haut de `src/fond-vinyle.js`, `false` par défaut). Dernier état complet de l'option A : commit `7b40788`.
+> - **Pour la reprise :** les critères ci-dessous (option A, « un seul passage ») servent de base.
+
 **En tant que** visiteur, **je veux** voir une main scratcher le disque quand je fais défiler la page, **afin de** vivre l'ambiance DJ sans être gêné dans ma lecture.
 
 **Référence :** page-projet-vinyle.svg, états 2, 3 et 4.

@@ -7,6 +7,8 @@
    et le reflet blanc reste fixe, comme un vrai reflet de lumière.
 
    Story 7.4 : le scratch au défilement (option A, « un seul passage »)
+   Statut « à revoir » : la main est désactivée par MAIN_SCRATCH_ACTIVE (voir les réglages) ;
+   seule la réaction du disque au défilement est active.
    - le disque tourne à la vitesse du défilement : vers le bas = horaire, vers le haut = anti-horaire.
      On ne crée pas de 2e animation : on change la vitesse (timeScale) de la rotation de 7.3 ;
    - au début d'un défilement, une main appuie sur le disque (pose « scratch » + pression).
@@ -24,6 +26,11 @@ import { appliquerPose, appliquerPression, melangerPoses } from './animation/mai
 gsap.registerPlugin(ScrollTrigger)
 
 /* ---------- Réglages ---------- */
+// true pour réactiver la main de scratch, à revoir (story 7.4 mise de côté, dernier état complet : commit 7b40788).
+// Avec false : ni main ni bras ne sont créés, aucun calcul lié à la main ne tourne ;
+// le disque réagit quand même au défilement (sens et vitesse, puis retour doux à la vitesse normale).
+const MAIN_SCRATCH_ACTIVE = false
+
 const DUREE_TOUR = 1.8 // secondes pour un tour complet du disque (33 tours par minute)
 
 // Réglages du scratch (story 7.4) : modifiez ces valeurs pour changer le ressenti
@@ -111,8 +118,9 @@ export function preparerFondVinyle(couleur) {
 
   // Story 7.4 : la main du scratch, dans sa couche (entre le disque et le fondu noir).
   // Elle est portée par le « bras » : tourner le bras = faire tourner la main autour du disque.
+  // Seulement si l'interrupteur MAIN_SCRATCH_ACTIVE est allumé.
   const coucheMain = document.querySelector('.fond-vinyle__main')
-  if (coucheMain) {
+  if (MAIN_SCRATCH_ACTIVE && coucheMain) {
     bras = document.createElement('div')
     bras.className = 'fond-vinyle__bras'
     coucheMain.append(bras)
@@ -142,7 +150,7 @@ export function arreterFondVinyle() {
  */
 export function signalerWireframeVisible(visible) {
   wireframeVisible = visible
-  if (visible && etat === 'passage') {
+  if (main && visible && etat === 'passage') {
     etat = 'termine'
     detendreMain()
   }
@@ -150,9 +158,10 @@ export function signalerWireframeVisible(visible) {
 
 /* ---------- Le scratch ---------- */
 
-// Le scratch n'existe que sur la page projet, sur grand écran, sans « réduire les animations »
+// Le scratch n'existe que sur la page projet, sur grand écran, sans « réduire les animations ».
+// Il ne dépend pas de la main : sans elle, le disque réagit quand même au défilement.
 function scratchAutorise() {
-  return main && rotation && ecranLarge.matches && !reduireAnimations.matches
+  return rotation && ecranLarge.matches && !reduireAnimations.matches
 }
 
 function activerScratch() {
@@ -160,8 +169,9 @@ function activerScratch() {
   // Un ScrollTrigger sans élément déclencheur couvre toute la page. Il ne fait rien d'autre
   // que nous prévenir à chaque image où la page a bougé, avec sa vitesse (getVelocity).
   declencheur = ScrollTrigger.create({ onUpdate: pendantDefilement })
-  // Le « métronome » de GSAP appelle suivreDisque à chaque image (environ 60 fois par seconde)
-  gsap.ticker.add(suivreDisque)
+  // Le « métronome » de GSAP appelle suivreDisque à chaque image (environ 60 fois par seconde),
+  // seulement s'il y a une main à faire suivre
+  if (main) gsap.ticker.add(suivreDisque)
 }
 
 // Coupe tout et remet le disque dans son état normal (vitesse 1, sans main)
@@ -187,7 +197,7 @@ function pendantDefilement(self) {
   reglerVitesse(cible)
 
   // self.direction : 1 = vers le bas, -1 = vers le haut
-  if (etat === 'repos' && !wireframeVisible) commencerPassage(self.direction)
+  if (main && etat === 'repos' && !wireframeVisible) commencerPassage(self.direction)
   minuteurArret.restart(true) // true : on repart pour DELAI_ARRET secondes complètes
 }
 
@@ -247,7 +257,7 @@ function detendreMain() {
 function arreterScratch() {
   reglerVitesse.tween.duration(0.8) // retour en douceur
   reglerVitesse(1)
-  if (etat === 'passage') detendreMain()
+  if (main && etat === 'passage') detendreMain()
   etat = 'repos' // prête pour le prochain défilement
 }
 
