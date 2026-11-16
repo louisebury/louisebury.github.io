@@ -155,6 +155,9 @@ const boutonsRetour = document.querySelectorAll('.bouton-retour')
 const vinyleConnect = decor.querySelector('#vinyle-connect')
 
 const DUREE_FONDU = 250 // en millisecondes, identique à la transition du style.css
+// Story 7.6 : après l'animation de lancement, le contenu de la page projet apparaît en 300 ms
+// (même durée que la transition de .vue-projet--apparition dans projet.css)
+const DUREE_APPARITION_CONTENU = 300
 const reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)')
 let vueActuelle = 'accueil' // au chargement, c'est l'accueil qui est visible
 let minuteurFondu = null
@@ -188,7 +191,8 @@ async function ouvrirProjet() {
   if (lancementEnCours()) return
 
   // Story 7.5 : l'animation de lancement se joue d'abord (sauf avec « réduire les animations »)
-  if (lancementPossible()) {
+  const avecLancement = lancementPossible()
+  if (avecLancement) {
     cacherMain()
     masquerInfoBulle()
     // Efface nom, poste, consigne et bouton son, et bloque la souris sur la scène (style.css)
@@ -200,7 +204,8 @@ async function ouvrirProjet() {
   // pushState change l'adresse et crée une entrée dans l'historique (le retour navigateur marche).
   // On y note qu'on vient de l'accueil : le bouton « ← Bibliothèque » s'en servira.
   history.pushState({ depuisAccueil: true }, '', '#connect')
-  afficherVue()
+  // Story 7.6 : après l'animation, pas de fondu de toute la vue (le disque est déjà à sa place de fond)
+  afficherVue({ apresLancement: avecLancement })
 }
 
 // 2. Boutons « ← Bibliothèque » : forEach pose le même écouteur sur chacun
@@ -224,7 +229,7 @@ window.addEventListener('hashchange', afficherVue)
 // 4. Au chargement : si l'adresse est déjà …/#connect, on affiche le projet tout de suite
 afficherVue({ instantane: true })
 
-function afficherVue({ instantane = false } = {}) {
+function afficherVue({ instantane = false, apresLancement = false } = {}) {
   const vueVoulue = location.hash === '#connect' ? 'projet' : 'accueil'
   if (vueVoulue === vueActuelle) return // déjà la bonne vue : rien à faire
   vueActuelle = vueVoulue
@@ -240,7 +245,7 @@ function afficherVue({ instantane = false } = {}) {
     masquerInfoBulle()
   }
 
-  basculer(depart, arrivee, instantane, () => {
+  basculer(depart, arrivee, instantane, apresLancement, () => {
     // La page projet peut défiler, l'accueil non (voir .mode-projet dans style.css)
     document.documentElement.classList.toggle('mode-projet', versProjet)
     window.scrollTo(0, 0) // la vue s'ouvre toujours en haut
@@ -267,8 +272,23 @@ function afficherVue({ instantane = false } = {}) {
 
 // Fondu : la vue de départ s'efface, puis la vue d'arrivée apparaît.
 // « ensuite » est appelé au moment où la vue d'arrivée devient visible.
-function basculer(depart, arrivee, instantane, ensuite) {
+function basculer(depart, arrivee, instantane, apresLancement, ensuite) {
   clearTimeout(minuteurFondu) // si on change d'avis en plein fondu
+
+  // Story 7.6 : fin de l'animation de lancement. Le disque de l'animation est exactement à la place
+  // du disque de fond : on échange les deux vues d'un coup (sans fondu), puis seuls le contenu
+  // et le fondu noir apparaissent (projet.css, .vue-projet--arrivee et .vue-projet--apparition).
+  if (apresLancement) {
+    arrivee.classList.add('vue-projet--arrivee', 'vue-projet--apparition') // contenu à l'opacité 0, transition prête
+    depart.hidden = true
+    arrivee.hidden = false
+    ensuite()
+    void arrivee.offsetWidth // force le navigateur à « voir » l'opacité 0 avant de la changer
+    arrivee.classList.remove('vue-projet--arrivee') // … le contenu remonte à 1 en fondu
+    // La transition finie, on retire la classe : elle ne gêne pas les autres effets de la page
+    minuteurFondu = setTimeout(() => arrivee.classList.remove('vue-projet--apparition'), DUREE_APPARITION_CONTENU)
+    return
+  }
 
   if (instantane || reduireAnimations.matches) {
     depart.hidden = true

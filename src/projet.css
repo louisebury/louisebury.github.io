@@ -1689,6 +1689,19 @@ html.effets-defilement .indicateur + .indicateur .barre::before {
     );
 }
 
+/* Story 7.6 : arrivée après l'animation de lancement (classes posées par main.js).
+   Le disque de fond est déjà visible, à sa place : seuls le contenu (tous les enfants
+   de la vue sauf le fond) et le fondu noir apparaissent, en 300 ms (DUREE_APPARITION_CONTENU). */
+.vue-projet--apparition > :not(.fond-vinyle),
+.vue-projet--apparition .fond-vinyle__fondu {
+  transition: opacity 300ms ease;
+}
+
+.vue-projet--arrivee > :not(.fond-vinyle),
+.vue-projet--arrivee .fond-vinyle__fondu {
+  opacity: 0;
+}
+
 /* Sous 768 px : un disque plus petit, centré, encore plus atténué,
    et un fondu uniforme. Le contenu reprend toute la largeur (section 7). */
 @media (max-width: 767px) {

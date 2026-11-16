@@ -130,6 +130,46 @@ export function preparerFondVinyle(couleur) {
   }
 }
 
+/**
+ * Story 7.6 : où est le disque de fond à l'écran ? Utilisée par l'animation de lancement,
+ * pour que son disque finisse exactement à cette place (pas de saut à l'échange).
+ * On MESURE la vraie place (au lieu de recopier les règles de projet.css) : si le CSS change,
+ * l'animation suit toute seule. La page projet est cachée : on l'affiche le temps de la mesure,
+ * mais invisible (visibility: hidden). Tout se passe avant que le navigateur ne redessine : rien ne clignote.
+ * Renvoie { x, y, rayon } en pixels de l'écran et l'opacité du disque, ou null s'il n'y a pas de disque.
+ */
+export function mesurerDisqueDeFond() {
+  const conteneur = document.querySelector('.fond-vinyle__disque')
+  const svg = conteneur && conteneur.querySelector('svg')
+  if (!svg) return null
+  const vue = conteneur.closest('.vue-projet')
+  const etaitCachee = vue.hidden
+  vue.style.visibility = 'hidden'
+  vue.hidden = false
+  const boite = svg.getBoundingClientRect()
+  const opacite = Number(getComputedStyle(conteneur).opacity)
+  vue.hidden = etaitCachee
+  vue.style.visibility = ''
+  // disque.svg fait 400 de côté (viewBox -200 -200 400 400) et le disque a un rayon de 196
+  return {
+    x: boite.left + boite.width / 2,
+    y: boite.top + boite.height / 2,
+    rayon: (boite.width / 2) * (196 / 200),
+    opacite,
+  }
+}
+
+/**
+ * Story 7.6 : place l'étiquette du disque de fond à un angle donné (en degrés, sens horaire),
+ * pour qu'elle reprenne exactement là où l'animation de lancement l'a laissée.
+ * On garde l'avance de 1 000 tours (voir preparerFondVinyle) et on ajoute la fraction de tour.
+ */
+export function calerRotationFondVinyle(angle) {
+  if (!rotation) return
+  const fraction = (((angle % 360) + 360) % 360) / 360 // entre 0 et 1, même si l'angle est négatif
+  rotation.totalTime(DUREE_TOUR * (1000 + fraction))
+}
+
 // Appelée par main.js quand la page projet s'affiche
 export function demarrerFondVinyle() {
   if (rotation && !reduireAnimations.matches) rotation.play()
