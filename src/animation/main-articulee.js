@@ -83,6 +83,66 @@ export function appliquerPose(elementMain, pose) {
   dessinerPlis(elementMain, doigts)
 }
 
+// Position du bout d'un doigt (bout() dans mains.py) : base → articulation → bout
+function bout(d) {
+  const [bx, by, , , , angle, courbure] = d
+  const [v1, v2] = longueurs(d)
+  const r1 = rad(angle)
+  const r2 = rad(angle + courbure)
+  const jx = bx + v1 * Math.sin(r1)
+  const jy = by - v1 * Math.cos(r1)
+  return [jx + v2 * Math.sin(r2), jy - v2 * Math.cos(r2)]
+}
+
+/**
+ * Story 7.4 : l'effet « pression » (main_svg(pression=True) dans mains.py).
+ * La main appuie sur le disque : elle s'écrase depuis le poignet (point 112, 222),
+ * plus large (× 1,07) et moins haute (× 0,9), et des traits de pression apparaissent
+ * au-dessus des 4 doigts et de chaque côté de la paume.
+ * - actif : true pour appuyer, false pour relâcher
+ * - pose : la pose en cours (les traits se placent au bout de ses doigts)
+ */
+export function appliquerPression(elementMain, actif, pose = 'scratch') {
+  // La main entière (pas la main « tenue » cachée) : le groupe dont l'id finit par « main-complete »
+  const complete = elementMain.querySelector('[id$="main-complete"]')
+  if (!complete) return
+  const halo = complete.querySelector(':scope > ellipse') // halo rose léger, absent en pression dans mains.py
+  let traits = complete.querySelector(':scope > g.traits-pression')
+
+  if (!actif) {
+    complete.removeAttribute('transform')
+    if (halo) halo.style.display = ''
+    if (traits) traits.remove()
+    return
+  }
+
+  // translate / scale / translate : l'écrasement se fait autour du poignet, qui ne bouge pas
+  complete.setAttribute('transform', 'translate(112 222) scale(1.07 0.9) translate(-112 -222)')
+  if (halo) halo.style.display = 'none'
+
+  if (!traits) {
+    traits = document.createElementNS(SVG, 'g')
+    traits.setAttribute('class', 'traits-pression')
+    traits.setAttribute('fill', 'none')
+    traits.setAttribute('stroke', '#F5F3FF')
+    traits.setAttribute('stroke-opacity', '0.85')
+    traits.setAttribute('stroke-width', '3')
+    traits.setAttribute('stroke-linecap', 'round')
+    complete.append(traits) // en dernier : par-dessus la main
+  }
+
+  // Un petit arc au-dessus du bout de chaque doigt (sauf le pouce), puis deux arcs le long de la paume
+  let chemins = ''
+  doigtsDe(pose)
+    .slice(0, 4)
+    .forEach((d) => {
+      const [tx, ty] = bout(d)
+      chemins += `<path d="M${f1(tx - 12)} ${f1(ty - 14)} Q${f1(tx)} ${f1(ty - 22)} ${f1(tx + 12)} ${f1(ty - 14)}"/>`
+    })
+  chemins += '<path d="M52 150 Q44 170 52 190 M172 150 Q180 170 172 190"/>'
+  traits.innerHTML = chemins
+}
+
 // Plis des phalanges repliées (repli > 35), comme dans main_svg() de mains.py.
 // Ils se placent juste après le calque de remplissage (le dernier <use>), sous la ligne de la paume.
 function dessinerPlis(elementMain, doigts) {

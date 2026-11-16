@@ -92,11 +92,19 @@ Une story = une session Claude Code en plan mode, puis `/clear`. On ne passe à 
 **Critères d'acceptation**
 1. **La main fait partie du fond.** Elle est placée entre le disque et le fondu noir, donc atténuée comme le disque. Elle est posée en bas à gauche, sur la partie visible du disque, en pose « scratch » avec l'effet de pression.
 2. **Défilement vers le bas :** la main apparaît (en 0,15 s) et le disque tourne dans le sens horaire, à une vitesse proportionnelle à la vitesse de défilement (`ScrollTrigger` et sa propriété de vélocité, ou équivalent proposé dans le plan).
-3. **Défilement vers le haut :** même geste, dans le sens anti-horaire.
-4. **Arrêt :** 0,6 s après le dernier mouvement, la main se détend (passage « scratch → ouverte ») et sort par le bas. Le disque reprend doucement sa rotation normale.
+
+   **2 bis. La main fait un seul passage (option A).**
+   - Au début d'un défilement, la main apparaît en haut de la partie visible du disque.
+   - Elle est accrochée au disque (même centre, même angle) et descend avec lui jusqu'en bas de la partie visible.
+   - Arrivée en bas, elle se détend (« scratch → ouverte ») et disparaît. Elle ne revient pas tant que le défilement continue.
+   - Elle ne réapparaît qu'au prochain défilement, après un arrêt.
+   - Si le défilement s'arrête avant qu'elle n'arrive en bas, elle disparaît sur place après 0,6 s.
+3. **Défilement vers le haut :** sens anti-horaire. Même passage en sens inverse : la main apparaît en bas de la partie visible et remonte jusqu'en haut, puis disparaît.
+4. **Arrêt :** 0,6 s après le dernier mouvement, si la main est encore sur le disque, elle se détend (passage « scratch → ouverte ») et disparaît sur place. Le disque reprend doucement sa rotation normale.
 5. **Pendant qu'une animation de wireframe est visible à l'écran**, la main n'apparaît pas.
 6. **Avec « réduire les animations » et sous 768 px**, il n'y a pas de main.
 7. Le défilement reste fluide, sans saccade visible.
+8. **Plan B :** si ce comportement ne convient pas au test, on retire la main ; le disque garde sa réaction au défilement et la story est notée « à revoir ».
 
 ---
 

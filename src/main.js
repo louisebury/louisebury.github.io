@@ -2,7 +2,7 @@ import './style.css'
 import './projet.css' // styles des pages projet (US4.2)
 import scene from './assets/scene-accueil.svg?raw'
 import { activerEffetsDefilement } from './effets-defilement.js' // US4.5
-import { preparerFondVinyle, demarrerFondVinyle, arreterFondVinyle } from './fond-vinyle.js' // Story 7.3
+import { preparerFondVinyle, demarrerFondVinyle, arreterFondVinyle, signalerWireframeVisible } from './fond-vinyle.js' // Stories 7.3 et 7.4
 
 // Insère le décor SVG directement dans la page, pour pouvoir cibler chaque calque en CSS et en JS
 const decor = document.querySelector('#decor')
@@ -233,6 +233,7 @@ function afficherVue({ instantane = false } = {}) {
     // US4.5 : la vue projet est maintenant affichée et mesurable : on lance (ou recalcule) les effets
     if (versProjet) activerEffetsDefilement()
     // Story 7.3 : le disque tourne seulement quand la page projet est visible
+    // (story 7.4 : le scratch au défilement démarre et s'arrête avec lui)
     if (versProjet) demarrerFondVinyle()
     else arreterFondVinyle()
 
@@ -419,6 +420,8 @@ const observateurAnimations = new IntersectionObserver(
       else iframesVisibles.delete(entree.target)
       envoyerEtat(entree.target)
     })
+    // Story 7.4 : la main du scratch reste cachée tant qu'une animation est à l'écran
+    signalerWireframeVisible(iframesVisibles.size > 0)
   },
   { threshold: 0.25 }
 )

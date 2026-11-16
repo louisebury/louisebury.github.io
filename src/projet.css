@@ -1622,9 +1622,48 @@ html.effets-defilement .indicateur + .indicateur .barre::before {
   height: 100%;
 }
 
-/* Couche 2 : la main du scratch (story 7.4). Vide pour l'instant. */
+/* Couche 2 : la main du scratch (story 7.4), sous le fondu noir : atténuée comme le disque.
+   Opacité 85 %, comme sur la maquette. */
 .fond-vinyle__main {
   inset: 0;
+  opacity: 0.85;
+}
+
+/* Le « bras » (critère 2 bis) : une boîte invisible exactement à la place du disque.
+   Elle tourne autour de son centre, qui est aussi le centre du disque :
+   la main qu'elle porte tourne donc avec le disque. */
+.fond-vinyle__bras {
+  position: absolute;
+  left: calc(4vw - 42vw);
+  top: calc(50% - 42vw);
+  width: 84vw;
+  height: 84vw;
+  transform-origin: 50% 50%;
+}
+
+/* La main, posée en bas à gauche sur la partie visible du disque.
+   Valeurs relevées sur la maquette (écran 1440 × 900) : main à l'échelle 0,9
+   (240 × 260 → 216 × 234 px, soit 15vw × 16,25vw), un peu sous le centre du disque,
+   inclinée de -36° autour de son point (110, 130).
+   Position mesurée depuis le coin du bras : à l'écran, la main est à 8,3vw du bord gauche
+   et 2,8vw sous le milieu de la hauteur ; le coin du bras est à -38vw et à (50 % - 42vw).
+   On utilise la propriété « rotate » (et non « transform ») : GSAP gère « transform »
+   pour faire monter et descendre la main, les deux s'additionnent sans se gêner. */
+.fond-vinyle__main svg {
+  position: absolute;
+  left: 46.3vw;
+  top: 44.8vw;
+  width: 15vw;
+  height: 16.25vw;
+  rotate: -36deg;
+  transform-origin: 50% 53.8%; /* le point (110, 130) dans la boîte -10 -10 240 260 */
+}
+
+/* Pas de main avec « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  .fond-vinyle__main {
+    display: none;
+  }
 }
 
 /* Couche 3 : le fondu noir, deux dégradés superposés (recopiés de la maquette).
@@ -1659,6 +1698,11 @@ html.effets-defilement .indicateur + .indicateur .barre::before {
     width: 90vw;
     height: 90vw;
     opacity: 0.3;
+  }
+
+  /* Story 7.4 : pas de main sous 768 px */
+  .fond-vinyle__main {
+    display: none;
   }
 
   .fond-vinyle__fondu {
