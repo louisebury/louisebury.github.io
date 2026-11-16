@@ -408,6 +408,11 @@
   margin-top: 48px;
 }
 
+/* Phrase d'introduction sous le surtitre, au-dessus de l'animation */
+.bloc-animation__intro {
+  margin: 0 0 16px;
+}
+
 /* Le cadre devient un « conteneur » : ses enfants peuvent se dimensionner
    d'après sa largeur, avec l'unité cqw (1 cqw = 1 % de cette largeur). */
 .bloc-animation__cadre {
